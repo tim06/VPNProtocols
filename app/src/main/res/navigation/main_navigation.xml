@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_navigation"
+    app:startDestination="@id/selectProtocolFragment">
+    <fragment
+        android:id="@+id/selectProtocolFragment"
+        android:name="com.tim.vpnprotocols.view.SelectProtocolFragment"
+        android:label="SelectProtocolFragment">
+        <action
+            android:id="@+id/action_selectProtocolFragment_to_shadowsocksrFragment"
+            app:destination="@id/shadowsocksrFragment" />
+        <action
+            android:id="@+id/action_selectProtocolFragment_to_openvpnFragment"
+            app:destination="@id/openvpnFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/shadowsocksrFragment"
+        android:name="com.tim.vpnprotocols.view.shadowsocksr.ShadowsocksrFragment"
+        android:label="ShadowsocksrFragment" />
+    <fragment
+        android:id="@+id/openvpnFragment"
+        android:name="com.tim.vpnprotocols.view.openvpn.OpenvpnFragment"
+        android:label="OpenvpnFragment" />
+</navigation>

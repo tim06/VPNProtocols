@@ -1,0 +1,3 @@
+-keep class com.tim.shadowsocksr.Native { *; }
+-keep class com.tim.shadowsocksr.ShadowsocksRConfig { *; }
+-keep class com.tim.shadowsocksr.delegate.DelegateKt { *; }

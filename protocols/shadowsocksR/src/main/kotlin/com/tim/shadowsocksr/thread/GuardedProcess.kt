@@ -1,0 +1,74 @@
+package com.tim.shadowsocksr.thread
+
+import timber.log.Timber
+
+/**
+ * [Process] runner
+ *
+ * @param cmd commands for create [Process]
+ *
+ * @Author: Timur Hojatov
+ */
+internal class GuardedProcess(private val cmd: List<String>) {
+
+    private var thread: Thread? = null
+    private var process: Process? = null
+    private var isDestroyed: Boolean = false
+    private var streamLoggerThread: StreamLoggerThread? = null
+
+    fun start(onRestartCallback: (() -> Boolean)? = null): GuardedProcess {
+        thread = Thread(
+            {
+                runCatching {
+                    while (isDestroyed.not()) {
+                        Timber.d("start process: $cmd")
+
+                        val startTime = System.currentTimeMillis()
+
+                        process = ProcessBuilder(cmd)
+                            .redirectErrorStream(true)
+                            .start()
+                            .also {
+                                streamLoggerThread = StreamLoggerThread(it.inputStream)
+                                    .also { logger ->
+                                        logger.start()
+                                    }
+                            }
+
+                        onRestartCallback?.invoke()
+
+                        process?.waitFor()
+
+                        synchronized(this) {
+                            if (System.currentTimeMillis() - startTime < START_TIME_TIMER_DELAY) {
+                                Timber.w("process exit too fast, stop guard: $cmd")
+                                isDestroyed = true
+                            }
+                        }
+                    }
+                }.onFailure {
+                    Timber.e("thread interrupt, destroy process: $cmd")
+                    process?.destroy()
+                }
+            },
+            "GuardThread-$cmd"
+        )
+
+        thread?.start()
+        return this
+    }
+
+    fun destroy() {
+        isDestroyed = true
+        thread?.interrupt()
+        streamLoggerThread?.interrupt()
+        process?.destroy()
+        runCatching {
+            thread?.join()
+        }
+    }
+
+    internal companion object {
+        private const val START_TIME_TIMER_DELAY = 1000
+    }
+}

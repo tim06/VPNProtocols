@@ -1,0 +1,6 @@
+-keep class com.tim.basevpn.IVPNService { *; }
+-keep class com.tim.basevpn.IConnectionStateListener { *; }
+-keep class com.tim.basevpn.state.ConnectionState { *; }
+-keep class com.tim.basevpn.permission.VpnActivityResultContract { *; }
+-keep class com.tim.basevpn.permission.VpnPermissionKt { *; }
+-keep class com.tim.basevpn.permission.VpnPermissionRequestKt { *; }

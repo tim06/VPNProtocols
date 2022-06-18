@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">VPNProtocols</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <string name="shadowsocksR">ShadowsocksR</string>
+    <string name="openVPN">ShadowsocksR</string>
+    <string name="chooseProtocol">Choose Protocol</string>
+    <string name="editConfig">Edit config</string>
+    <string name="config">Config</string>
+    <string name="save">Save</string>
+
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+
+    <string name="configName">Config Name</string>
+    <string name="host">Host</string>
+    <string name="port">Port</string>
+    <string name="chooseType">Choose type</string>
+    <string name="chooseCipher">Choose cipher type</string>
+    <string name="auth">Choose auth type</string>
+    <string name="ca">Enter ca</string>
+    <string name="key">Enter key</string>
+    <string name="cert">Enter cert</string>
+    <string name="tlsCrypt">Enter tls key</string>
+</resources>
