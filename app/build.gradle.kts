@@ -65,9 +65,7 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.1.1"
-    }
+
     packagingOptions {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -77,9 +75,9 @@ android {
 
 dependencies {
     //Modules
-    implementation(project(":base:basevpn"))
-    implementation(project(":protocols:shadowsocksR"))
-    implementation(project(":protocols:openvpn"))
+    //implementation(project(":base:basevpn"))
+    //implementation(project(":protocols:shadowsocksR"))
+    //implementation(project(":protocols:openvpn"))
 
     //AndroidX
     implementation(libs.androidx.core)
@@ -107,4 +105,10 @@ dependencies {
     implementation(libs.compose.uitooling)
     implementation(libs.compose.navigation)
     implementation(libs.material3)
+    implementation(libs.material3) {
+        exclude(group = "com.google.code.findbugs", module = "jsr305")
+    }
+
+    implementation(files("/Users/tim/Downloads/openvpn-1.0.0.aar"))
+    implementation(files("/Users/tim/Downloads/shadowsocksr-1.0.0.aar"))
 }

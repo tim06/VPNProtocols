@@ -1,0 +1,2 @@
+-keep class com.tim.openvpn.OpenVPNConfig { *; }
+-keep class com.tim.openvpn.delegate.DelegateKt { *; }

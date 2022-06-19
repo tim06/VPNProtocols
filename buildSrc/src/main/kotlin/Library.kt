@@ -16,7 +16,11 @@ fun Project.addAndroidLibrarySection(name: String) = libraryExtension.run {
         targetSdk = (findProperty("android.targetSdk") as String).toInt()
     }
 
-    viewBinding.isEnabled = true
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
 
     buildTypes {
         release {
