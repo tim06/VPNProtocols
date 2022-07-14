@@ -5,6 +5,8 @@ import android.util.Log
 internal object VpnStatus {
 
     internal fun log(message: String?, additionalInfo: String? = null) {
-        Log.d("VpnStatusLog", "$message / $additionalInfo")
+        if (BuildConfig.DEBUG) {
+            Log.d("VpnStatusLog", "$message / $additionalInfo")
+        }
     }
 }

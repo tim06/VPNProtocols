@@ -1,12 +1,12 @@
 package com.tim.vpnprotocols.compose.openvpn.controller
 
-import android.content.Context
-import android.util.Log
+import androidx.activity.compose.LocalActivityResultRegistryOwner
+import androidx.activity.result.ActivityResultRegistry
+import androidx.activity.result.ActivityResultRegistryOwner
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.tim.basevpn.state.ConnectionState
-import com.tim.basevpn.extension.getActivity
 import com.tim.openvpn.OpenVPNConfig
 import com.tim.openvpn.delegate.openVPN
 import com.tim.vpnprotocols.compose.base.BaseController
@@ -17,27 +17,28 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * @Author: Timur Hojatov
  */
-
 @Composable
 fun rememberOpenVPNController(config: OpenVPNConfig): OpenVPNController {
     val context = LocalContext.current
+    val registry = LocalActivityResultRegistryOwner.current
     return remember(context) {
         OpenVPNController(
-            context = context,
+            activityResultRegistryOwner = registry!!,
             config = config
         )
     }
+    // TODO find way to retrieve registry from compose context
 }
 
 class OpenVPNController(
-    context: Context,
+    activityResultRegistryOwner: ActivityResultRegistryOwner,
     config: OpenVPNConfig
 ) : BaseController {
 
     private val mutableStateFlow = MutableStateFlow(ConnectionState.IDLE)
     override val connectionState: StateFlow<ConnectionState> = mutableStateFlow.asStateFlow()
 
-    private val vpnService by context.getActivity()!!.openVPN(
+    private val vpnService by activityResultRegistryOwner.openVPN(
         config = config
     ) { connectionStatus ->
         mutableStateFlow.value = connectionStatus

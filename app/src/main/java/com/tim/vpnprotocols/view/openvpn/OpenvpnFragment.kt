@@ -22,13 +22,7 @@ class OpenvpnFragment : Fragment(R.layout.openvpn_fragment_layout) {
 
     private val layoutBinding: OpenvpnFragmentLayoutBinding by viewBinding()
 
-    private val vpnPermission = vpnPermissionResult { isSuccess ->
-        if (isSuccess) {
-            startVpn()
-        }
-    }
-
-    private val vpnService by openVPN(
+    private val vpnService by requireActivity().openVPN(
         config = OpenVPNConfig()
     ) { connectionStatus ->
         updateConnectionState(connectionStatus)
@@ -38,20 +32,12 @@ class OpenvpnFragment : Fragment(R.layout.openvpn_fragment_layout) {
         super.onViewCreated(view, savedInstanceState)
         layoutBinding.apply {
             startButton.setOnClickListener {
-                if (requireContext().isVpnPermissionGranted()) {
-                    startVpn()
-                } else {
-                    vpnPermission.launch()
-                }
+                vpnService.start()
             }
             stopButton.setOnClickListener {
                 vpnService.stop()
             }
         }
-    }
-
-    private fun startVpn() {
-        vpnService.start()
     }
 
     private fun updateConnectionState(state: ConnectionState) {

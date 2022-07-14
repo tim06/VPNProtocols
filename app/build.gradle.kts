@@ -19,7 +19,6 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("/Users/tim/Desktop/vpn_protocols_keys/release_key.jks")
             com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir).apply {
                 storePassword = getProperty("storePwd")
                 keyAlias = getProperty("keyAlias")
@@ -65,9 +64,11 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.1.1"
     }
+
     packagingOptions {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -77,9 +78,8 @@ android {
 
 dependencies {
     //Modules
-    implementation(project(":base:basevpn"))
-    implementation(project(":protocols:shadowsocksR"))
-    implementation(project(":protocols:openvpn"))
+    implementation(libs.tim.openvpn)
+    implementation(libs.tim.shadowsocksr)
 
     //AndroidX
     implementation(libs.androidx.core)
@@ -90,9 +90,6 @@ dependencies {
     //Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
-
-    //Logger
-    implementation(libs.timber)
 
     //Viewbinding
     implementation(libs.viewbinding)

@@ -3,8 +3,8 @@ plugins {
     kotlin("android")
 }
 
-addAndroidLibrarySection("com.tim.notification")
+setupLibraryModule("com.tim.notification", true)
 
 dependencies {
-    implementation(libs.androidx.core)
+    api(libs.androidx.core)
 }

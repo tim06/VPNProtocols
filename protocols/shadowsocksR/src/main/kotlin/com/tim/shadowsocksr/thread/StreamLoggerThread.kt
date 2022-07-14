@@ -1,6 +1,7 @@
 package com.tim.shadowsocksr.thread
 
-import timber.log.Timber
+import android.util.Log
+import com.tim.shadowsocksr.BuildConfig
 import java.io.InputStream
 
 /**
@@ -15,7 +16,9 @@ internal class StreamLoggerThread(private val inputStream: InputStream) : Thread
         runCatching {
             inputStream.bufferedReader().use { reader ->
                 reader.lineSequence().forEach {
-                    Timber.d("Message $it")
+                    if (BuildConfig.DEBUG) {
+                        Log.d("StreamLogger", "Message $it")
+                    }
                 }
             }
         }

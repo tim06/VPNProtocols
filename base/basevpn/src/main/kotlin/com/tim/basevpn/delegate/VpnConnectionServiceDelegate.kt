@@ -8,17 +8,16 @@ import android.content.ServiceConnection
 import android.net.VpnService
 import android.os.IBinder
 import android.os.Parcelable
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
+import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.ActivityResultRegistryOwner
+import androidx.activity.result.launch
 import androidx.lifecycle.lifecycleScope
 import com.tim.basevpn.IConnectionStateListener
 import com.tim.basevpn.IVPNService
-import com.tim.basevpn.extension.getActivity
+import com.tim.basevpn.permission.VpnActivityResultContract
 import com.tim.basevpn.state.ConnectionState
 import com.tim.basevpn.utils.CONFIG_EXTRA
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -26,7 +25,6 @@ import kotlin.reflect.KProperty
 /**
  * ServiceConnection delegate
  *
- * @param lifecycleOwner For lifecycle events
  * @param config User configuration
  * @param clazz Class of VpnService
  * @param stateListener Receive state of connection
@@ -34,17 +32,32 @@ import kotlin.reflect.KProperty
  * @Author: Timur Hojatov
  */
 class VpnConnectionServiceDelegate<T : Parcelable>(
-    private val lifecycleOwner: LifecycleOwner,
+    activityResultRegistryOwner: ActivityResultRegistryOwner,
     private val config: T,
     private val clazz: Class<out VpnService>,
     private val stateListener: ((ConnectionState) -> Unit)
 ) : ReadOnlyProperty<Any, VPNRunner> {
 
+    private val activity: ComponentActivity = activityResultRegistryOwner as ComponentActivity
+
+    private var vpnPermission: ActivityResultLauncher<Unit>? = null
+
+    private val vpnRunner = object : VPNRunner {
+        override fun start() {
+            vpnPermission?.launch()
+        }
+
+        override fun stop() {
+            vpnService?.stopVPN()
+            activity.unbind()
+        }
+    }
+
     private var isBound = false
     private val listener = object : IConnectionStateListener.Stub() {
         override fun stateChanged(status: ConnectionState?) {
             status?.let { state ->
-                lifecycleOwner.lifecycleScope.launch {
+                activity.lifecycleScope.launch {
                     stateListener.invoke(state)
                 }
             }
@@ -65,32 +78,22 @@ class VpnConnectionServiceDelegate<T : Parcelable>(
         }
     }
 
-    override fun getValue(thisRef: Any, property: KProperty<*>): VPNRunner {
-        return object : VPNRunner {
-            override fun start() {
+    init {
+        vpnPermission = activityResultRegistryOwner.activityResultRegistry.register(
+            VPN_PERMISSION_RESULT_KEY,
+            VpnActivityResultContract()
+        ) { isGranted ->
+            if (isGranted) {
                 stateListener.invoke(ConnectionState.CONNECTING)
-                when (lifecycleOwner) {
-                    is Fragment -> {
-                        lifecycleOwner.requireActivity().bind()
-                    }
-                    is Activity -> {
-                        lifecycleOwner.bind()
-                    }
-                }
-            }
-
-            override fun stop() {
-                vpnService?.stopVPN()
-                when (lifecycleOwner) {
-                    is Fragment -> {
-                        lifecycleOwner.requireActivity().unbind()
-                    }
-                    is Activity -> {
-                        lifecycleOwner.unbind()
-                    }
-                }
+                activity.bind()
+            } else {
+                stateListener.invoke(ConnectionState.PERMISSION_NOT_GRANTED)
             }
         }
+    }
+
+    override fun getValue(thisRef: Any, property: KProperty<*>): VPNRunner {
+        return vpnRunner
     }
 
     private fun Activity.bind() {
@@ -113,4 +116,8 @@ class VpnConnectionServiceDelegate<T : Parcelable>(
         this,
         clazz
     ).putExtra(CONFIG_EXTRA, config)
+
+    private companion object {
+        private const val VPN_PERMISSION_RESULT_KEY = "VPN_PERMISSION_RESULT_KEY"
+    }
 }

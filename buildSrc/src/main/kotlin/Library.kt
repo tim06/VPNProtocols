@@ -1,26 +1,45 @@
+import com.android.build.gradle.BaseExtension
+import com.android.build.gradle.LibraryExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.getByType
-import com.android.build.gradle.LibraryExtension
-import org.gradle.kotlin.dsl.dependencies
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.kotlin.dsl.apply
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.get
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
 
-internal val Project.libraryExtension: LibraryExtension
-    get() = extensions.getByType()
-
-fun Project.addAndroidLibrarySection(name: String) = libraryExtension.run {
+fun Project.setupLibraryModule(
+    name: String,
+    publish: Boolean = false,
+    block: LibraryExtension.() -> Unit = {}
+) = setupBaseModule<LibraryExtension> {
     namespace = name
-    compileSdk = (findProperty("android.compileSdk") as String).toInt()
-    defaultConfig {
-        minSdk = (findProperty("android.minSdk") as String).toInt()
-        targetSdk = (findProperty("android.targetSdk") as String).toInt()
+    sourceSets["main"].jniLibs.srcDir("src/main/jniLibs")
+    if (publish) {
+        apply(plugin = "com.vanniktech.maven.publish.base")
+        publishing {
+            singleVariant("release") {
+                withSourcesJar()
+            }
+        }
+        afterEvaluate {
+            extensions.configure<PublishingExtension> {
+                publications.create<MavenPublication>("release") {
+                    from(components["release"])
+                    // https://github.com/vanniktech/gradle-maven-publish-plugin/issues/326
+                    val id = project.property("POM_ARTIFACT_ID").toString()
+                    artifactId = artifactId.replace(project.name, id)
+                }
+            }
+        }
     }
-
-    viewBinding.isEnabled = true
 
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             consumerProguardFile(
                 "proguard-rules.pro"
             )
@@ -34,16 +53,33 @@ fun Project.addAndroidLibrarySection(name: String) = libraryExtension.run {
             isMinifyEnabled = false
         }
     }
+    block()
+}
 
-    sourceSets["main"].jniLibs.srcDir("src/main/jniLibs")
-
+private inline fun <reified T : BaseExtension> Project.setupBaseModule(
+    crossinline block: T.() -> Unit = {}
+) = extensions.configure<T>("android") {
+    compileSdkVersion((findProperty("android.compileSdk") as String).toInt())
+    defaultConfig {
+        minSdk = (findProperty("android.minSdk") as String).toInt()
+        targetSdk = (findProperty("android.targetSdk") as String).toInt()
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-
-    // TODO wait to resolve https://github.com/gradle/gradle/issues/15383
-    dependencies {
-        implementation("com.jakewharton.timber:timber:4.7.1")
+    kotlinOptions {
+        jvmTarget = "1.8"
+        allWarningsAsErrors = true
     }
+    packagingOptions {
+        resources.pickFirsts += "META-INF/AL2.0"
+        resources.pickFirsts += "META-INF/LGPL2.1"
+        resources.pickFirsts += "META-INF/*kotlin_module"
+    }
+    block()
+}
+
+private fun BaseExtension.kotlinOptions(block: KotlinJvmOptions.() -> Unit) {
+    (this as ExtensionAware).extensions.configure("kotlinOptions", block)
 }

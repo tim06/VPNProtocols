@@ -36,7 +36,7 @@ class ShadowsocksRController(
     private val mutableStateFlow = MutableStateFlow(ConnectionState.IDLE)
     override val connectionState: StateFlow<ConnectionState> = mutableStateFlow.asStateFlow()
 
-    private val vpnService by context.getActivity()!!.shadowsocksR(
+    private val vpnService by context.getActivity().shadowsocksR(
         config = config
     ) { connectionStatus ->
         mutableStateFlow.value = connectionStatus

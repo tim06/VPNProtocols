@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.IBinder
 import android.os.ParcelFileDescriptor
+import android.util.Log
 import com.tim.basevpn.IConnectionStateListener
 import com.tim.basevpn.IVPNService
 import com.tim.basevpn.delegate.StateDelegate
@@ -14,12 +15,12 @@ import com.tim.basevpn.utils.sendCallback
 import com.tim.notification.NotificationHelper
 import com.tim.shadowsocksr.Native
 import com.tim.basevpn.R
+import com.tim.shadowsocksr.BuildConfig
 import com.tim.shadowsocksr.ShadowsocksRVpnConfig
 import com.tim.shadowsocksr.config.ConfigWriter
 import com.tim.shadowsocksr.thread.GuardedProcess
 import com.tim.shadowsocksr.thread.ShadowsocksRThread
 import com.tim.shadowsocksr.thread.TrafficMonitorThread
-import timber.log.Timber
 
 /**
  * @Author: Timur Hojatov
@@ -116,7 +117,9 @@ internal class ShadowsocksService : VpnService() {
 
         val fd = establish()
         if (!sendFileDescriptor(fd)) {
-            Timber.e("sendFd failed")
+            if (BuildConfig.DEBUG) {
+                Log.e("ShadowsocksService","sendFd failed")
+            }
             stop()
             return
         }
@@ -157,7 +160,9 @@ internal class ShadowsocksService : VpnService() {
 
             addRoute(config.dnsAddress, DNS_PREFIX_LENGTH)
         }.establish() ?: run {
-            Timber.e("No connection")
+            if (BuildConfig.DEBUG) {
+                Log.e("ShadowsocksService", "No connection")
+            }
             return -1
         }
 

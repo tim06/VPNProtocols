@@ -4,8 +4,9 @@ import android.annotation.SuppressLint
 import android.net.LocalServerSocket
 import android.net.LocalSocket
 import android.net.LocalSocketAddress
+import android.util.Log
+import com.tim.shadowsocksr.BuildConfig
 import com.tim.shadowsocksr.Native
-import timber.log.Timber
 import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
@@ -60,13 +61,17 @@ internal class ShadowsocksRThread(
                     input?.close()
                     output?.close()
                 }.onFailure { error ->
-                    Timber.e("Error when protect socket: $error")
+                    if (BuildConfig.DEBUG) {
+                        Log.e("ShadowsocksRThread", "Error when protect socket: $error")
+                    }
                 }
                 runCatching {
                     servSocket?.close()
                 }
             }.onFailure {
-                Timber.e("Error when accept socket")
+                if (BuildConfig.DEBUG) {
+                    Log.e("ShadowsocksRThread", "Error when accept socket")
+                }
                 initServerSocket()
             }
         }
@@ -94,7 +99,9 @@ internal class ShadowsocksRThread(
             serverSocket = LocalServerSocket(localSocket.fileDescriptor)
             true
         } catch (e: IOException) {
-            Timber.e(e)
+            if (BuildConfig.DEBUG) {
+                Log.e("ShadowsocksRThread", "$e")
+            }
             false
         }
     }

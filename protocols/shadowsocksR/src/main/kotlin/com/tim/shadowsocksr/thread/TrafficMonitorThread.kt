@@ -3,7 +3,8 @@ package com.tim.shadowsocksr.thread
 import android.net.LocalServerSocket
 import android.net.LocalSocket
 import android.net.LocalSocketAddress
-import timber.log.Timber
+import android.util.Log
+import com.tim.shadowsocksr.BuildConfig
 import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -44,21 +45,26 @@ internal class TrafficMonitorThread(
                     val data = input?.read(buffer)
                     if (data != BYTE_ARRAY_SIZE) throw IOException("Unexpected traffic stat length")
                     val stat = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN)
-                    Timber.d("${stat.getLong(0)}, ${stat.getLong(LOG_INDEX)}")
-
+                    if (BuildConfig.DEBUG) {
+                        Log.d("TrafficMonitor", "${stat.getLong(0)}, ${stat.getLong(LOG_INDEX)}")
+                    }
                     output?.write(0)
 
                     input.close()
                     output?.close()
                 }.onFailure { error ->
-                    Timber.e("Error when recv traffic stat: $error")
+                    if (BuildConfig.DEBUG) {
+                        Log.e("TrafficMonitor", "Error when recv traffic stat: $error")
+                    }
                 }
 
                 runCatching {
                     servSocket?.close()
                 }
             }.onFailure {
-                Timber.e("Error when accept socket")
+                if (BuildConfig.DEBUG) {
+                    Log.e("TrafficMonitor", "Error when accept socket")
+                }
                 initServerSocket()
             }
         }
@@ -86,7 +92,9 @@ internal class TrafficMonitorThread(
             serverSocket = LocalServerSocket(localSocket.fileDescriptor)
             true
         } catch (e: IOException) {
-            Timber.e(e)
+            if (BuildConfig.DEBUG) {
+                Log.e("TrafficMonitor", "$e")
+            }
             false
         }
     }

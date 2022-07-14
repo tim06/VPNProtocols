@@ -27,13 +27,13 @@ import com.tim.openvpn.utils.NativeLibsHelper
 internal class OpenVPNService : VpnService(), Handler.Callback, VpnServiceManager {
 
     private val nativeDir by lazy {
-        application.applicationInfo.nativeLibraryDir
+        applicationContext.applicationInfo.nativeLibraryDir
     }
     private val tmpDir by lazy {
-        application.cacheDir.absolutePath
+        applicationContext.cacheDir.absolutePath
     }
     private val cacheDir by lazy {
-        application.cacheDir.canonicalPath
+        applicationContext.cacheDir.canonicalPath
     }
 
     // Notification

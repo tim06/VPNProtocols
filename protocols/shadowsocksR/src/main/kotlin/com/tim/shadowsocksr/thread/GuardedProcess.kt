@@ -1,6 +1,7 @@
 package com.tim.shadowsocksr.thread
 
-import timber.log.Timber
+import android.util.Log
+import com.tim.shadowsocksr.BuildConfig
 
 /**
  * [Process] runner
@@ -21,7 +22,9 @@ internal class GuardedProcess(private val cmd: List<String>) {
             {
                 runCatching {
                     while (isDestroyed.not()) {
-                        Timber.d("start process: $cmd")
+                        if (BuildConfig.DEBUG) {
+                            Log.d("GuardedProcess","start process: $cmd")
+                        }
 
                         val startTime = System.currentTimeMillis()
 
@@ -41,13 +44,17 @@ internal class GuardedProcess(private val cmd: List<String>) {
 
                         synchronized(this) {
                             if (System.currentTimeMillis() - startTime < START_TIME_TIMER_DELAY) {
-                                Timber.w("process exit too fast, stop guard: $cmd")
+                                if (BuildConfig.DEBUG) {
+                                    Log.w("GuardedProcess", "process exit too fast, stop guard: $cmd")
+                                }
                                 isDestroyed = true
                             }
                         }
                     }
                 }.onFailure {
-                    Timber.e("thread interrupt, destroy process: $cmd")
+                    if (BuildConfig.DEBUG) {
+                        Log.e("GuardedProcess", "thread interrupt, destroy process: $cmd")
+                    }
                     process?.destroy()
                 }
             },

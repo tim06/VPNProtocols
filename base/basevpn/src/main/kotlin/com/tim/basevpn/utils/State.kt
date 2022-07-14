@@ -3,8 +3,9 @@ package com.tim.basevpn.utils
 import android.os.Handler
 import android.os.Looper
 import android.os.RemoteCallbackList
+import android.util.Log
+import com.tim.basevpn.BuildConfig
 import com.tim.basevpn.IConnectionStateListener
-import timber.log.Timber
 
 /**
  * @Author: Timur Hojatov
@@ -19,7 +20,9 @@ inline fun RemoteCallbackList<IConnectionStateListener>.sendCallback(
                 runCatching {
                     block.invoke(getBroadcastItem(i))
                 }.onFailure { exception ->
-                    Timber.e(exception)
+                    if (BuildConfig.DEBUG) {
+                        Log.e("State", "$exception")
+                    }
                 }
             }
             finishBroadcast()

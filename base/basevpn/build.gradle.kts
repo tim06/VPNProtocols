@@ -4,9 +4,9 @@ plugins {
     id("kotlin-parcelize")
 }
 
-addAndroidLibrarySection("com.tim.basevpn")
+setupLibraryModule("com.tim.basevpn", true)
 
 dependencies {
-    implementation(libs.androidx.lifecyclektx)
-    implementation(libs.androidx.fragment)
+    api(libs.androidx.lifecyclektx)
+    api(libs.androidx.fragment)
 }

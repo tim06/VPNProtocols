@@ -20,5 +20,9 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 -keep class com.tim.shadowsocksr.Native { *; }
--keep class com.tim.shadowsocksr.ShadowsocksRConfig { *; }
+-keep class com.tim.shadowsocksr.ShadowsocksRVpnConfig { *; }
 -keep class com.tim.shadowsocksr.delegate.DelegateKt { *; }
+-keep class com.tim.basevpn.delegate.VPNRunner { *; }
+-keep class com.tim.basevpn.delegate.StateDelegate { *; }
+-keep class * extends android.os.Binder { *; }
+-keep class com.tim.notification.NotificationHelper { *; }

@@ -11,7 +11,10 @@ import com.tim.vpnprotocols.compose.shadowsocksr.controller.rememberShadowsocksR
 @Composable
 fun ShadowsocksRScreen() {
     val shadowsocksRController = rememberShadowsocksRController(
-        config = ShadowsocksRVpnConfig()
+        config = ShadowsocksRVpnConfig(
+            host = "89.223.67.70",
+            password = "ATwoT@@Pc5"
+        )
     )
     VpnScreen(vpnController = shadowsocksRController)
 }

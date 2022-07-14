@@ -1,17 +1,26 @@
 package com.tim.openvpn.delegate
 
-import androidx.lifecycle.LifecycleOwner
+import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultRegistryOwner
 import com.tim.basevpn.delegate.VpnConnectionServiceDelegate
 import com.tim.basevpn.state.ConnectionState
 import com.tim.openvpn.OpenVPNConfig
 import com.tim.openvpn.service.OpenVPNService
 
-fun LifecycleOwner.openVPN(
+fun ComponentActivity.openVPN(
+    config: OpenVPNConfig,
+    stateListener: ((ConnectionState) -> Unit)
+) = (this as ActivityResultRegistryOwner).openVPN(
+    config = config,
+    stateListener = stateListener
+)
+
+fun ActivityResultRegistryOwner.openVPN(
     config: OpenVPNConfig,
     stateListener: ((ConnectionState) -> Unit)
 ) = VpnConnectionServiceDelegate(
-        lifecycleOwner = this,
-        config = config,
-        clazz = OpenVPNService::class.java,
-        stateListener = stateListener
-    )
+    activityResultRegistryOwner = this,
+    config = config,
+    clazz = OpenVPNService::class.java,
+    stateListener = stateListener
+)

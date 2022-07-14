@@ -15,5 +15,6 @@ enum class ConnectionState : Parcelable {
     CONNECTING,
     DISCONNECTED,
     DISCONNECTING,
+    PERMISSION_NOT_GRANTED,
     IDLE
 }

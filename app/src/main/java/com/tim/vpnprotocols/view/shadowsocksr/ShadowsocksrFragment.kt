@@ -28,11 +28,8 @@ class ShadowsocksrFragment : Fragment(R.layout.shadowsocks_fragment_layout) {
         }
     }
 
-    private val vpnService by shadowsocksR(
-        config = ShadowsocksRVpnConfig(
-            host = "46.229.214.180",
-            password = "ATwoT@@Pc5"
-        )
+    private val vpnService by requireActivity().shadowsocksR(
+        config = ShadowsocksRVpnConfig()
     ) { connectionStatus ->
         updateState(connectionStatus)
     }

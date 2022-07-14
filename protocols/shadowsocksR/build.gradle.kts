@@ -4,11 +4,11 @@ plugins {
     id("kotlin-parcelize")
 }
 
-addAndroidLibrarySection("com.tim.shadowsocksr")
+setupLibraryModule("com.tim.shadowsocksr", true)
 
 dependencies {
-    api(project(":base:basevpn"))
-    implementation(project(":base:notification"))
+    api(libs.tim.base)
+    api(libs.tim.notification)
 
-    implementation(libs.androidx.lifecyclektx)
+    api(libs.androidx.lifecyclektx)
 }

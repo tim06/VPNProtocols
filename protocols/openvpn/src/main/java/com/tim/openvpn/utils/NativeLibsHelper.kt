@@ -1,17 +1,14 @@
 package com.tim.openvpn.utils
 
 import android.content.Context
-import com.tim.openvpn.core.NativeUtils.nativeAPI
 import android.os.Build
 import android.util.Log
+import com.tim.openvpn.BuildConfig
 import com.tim.openvpn.VpnStatus
-import timber.log.Timber
+import com.tim.openvpn.core.NativeUtils.nativeAPI
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 import java.io.InputStream
-import java.lang.RuntimeException
-import java.util.*
 
 /**
  * Write native libs to cache folders
@@ -33,7 +30,7 @@ internal class NativeLibsHelper(
     private fun writeMiniVPN(): String {
         /* Q does not allow executing binaries written in temp directory anymore */
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            File(context.applicationInfo.nativeLibraryDir, LIBOVPNEXEC).path
+            File(context.applicationContext.applicationInfo.nativeLibraryDir, LIBOVPNEXEC).path
         } else {
             var abis = Build.SUPPORTED_ABIS
             if (nativeAPI != abis[0]) {
@@ -44,7 +41,7 @@ internal class NativeLibsHelper(
                 abis = arrayOf("x86")
             }
             for (abi in abis) {
-                val vpnExecutable = File(context.cacheDir, "c_$MINIPIEVPN.$abi")
+                val vpnExecutable = File(context.applicationContext.cacheDir, "c_$MINIPIEVPN.$abi")
                 val isMiniVPNAvailable = writeMiniVPNBinary(
                     abi,
                     vpnExecutable
@@ -53,16 +50,19 @@ internal class NativeLibsHelper(
                     return vpnExecutable.path
                 }
             }
-            Timber.e(
-                "Cannot find any executable for this device's ABIs $abis"
-            )
+            if (BuildConfig.DEBUG) {
+                Log.e(
+                    "NativeLibsHelper",
+                    "Cannot find any executable for this device's ABIs $abis"
+                )
+            }
             ""
         }
     }
 
     private fun writeMiniVPNBinary(abi: String, mvpnout: File): Boolean {
         return runCatching {
-            val mvpn: InputStream = context.assets.open("$MINIPIEVPN.$abi")
+            val mvpn: InputStream = context.applicationContext.assets.open("$MINIPIEVPN.$abi")
             FileOutputStream(mvpnout).use { outputStream ->
                 val buf = ByteArray(OUTPUTSTREAM_SIZE)
                 var lenread = mvpn.read(buf)

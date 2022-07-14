@@ -3,6 +3,8 @@ plugin-android = "7.2.1"
 plugin-kotlin = "1.6.10"
 plugin-detekt = "1.20.0"
 plugin-fataar = "1.3.8"
+plugin-nexus = "1.1.0"
+plugin-publish = "0.20.0"
 
 androidx-core = "1.8.0"
 androidx-appcompat = "1.4.2"
@@ -21,14 +23,17 @@ viewbinding = "1.5.6"
 
 kotlinx-coroutines = "1.6.1"
 koin = "3.2.0"
-timber = "5.0.1"
 gson = "2.9.0"
+
+vpnprotocols-version = "1.0.12"
 
 [libraries]
 plugin-android = { module = "com.android.tools.build:gradle", version.ref = "plugin-android" }
 plugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "plugin-kotlin" }
 plugin-detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "plugin-detekt" }
 plugin-fataar = { module = "com.github.kezong:fat-aar", version.ref = "plugin-fataar" }
+plugin-nexus = { module = "io.github.gradle-nexus:publish-plugin", version.ref = "plugin-nexus" }
+plugin-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "plugin-publish" }
 
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
@@ -52,10 +57,14 @@ koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 navigation-fragment = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigation" }
 navigation-ui = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
 
-timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 
 viewbinding = { module = "com.github.kirich1409:viewbindingpropertydelegate", version.ref = "viewbinding" }
 
+tim-base = { module = "io.github.tim06:basevpnprotocols", version.ref = "vpnprotocols-version" }
+tim-notification = { module = "io.github.tim06:vpnprotocolsnotification", version.ref = "vpnprotocols-version" }
+tim-shadowsocksr = { module = "io.github.tim06:shadowsocksr", version.ref = "vpnprotocols-version" }
+tim-openvpn = { module = "io.github.tim06:openvpn", version.ref = "vpnprotocols-version" }
+
 [bundles]
-plugins = ["plugin-android", "plugin-kotlin", "plugin-detekt", "plugin-fataar"]
+plugins = ["plugin-android", "plugin-kotlin", "plugin-detekt", "plugin-fataar", "plugin-nexus", "plugin-publish"]
