@@ -72,6 +72,9 @@ class ShadowsocksrFragment : Fragment(R.layout.shadowsocks_fragment_layout) {
             ConnectionState.CONNECTED -> {
                 layoutBinding.stateTextView.text = "CONNECTED"
             }
+            else -> {
+                layoutBinding.stateTextView.text = "STOPPED"
+            }
         }
     }
 }

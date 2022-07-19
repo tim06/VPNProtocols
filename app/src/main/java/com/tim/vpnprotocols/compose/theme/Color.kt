@@ -1,3 +1,4 @@
+@file:Suppress("MagicNumber")
 package com.tim.vpnprotocols.compose.theme
 
 import androidx.compose.ui.graphics.Color

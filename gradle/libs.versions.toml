@@ -1,27 +1,26 @@
 [versions]
 plugin-android = "7.2.1"
-plugin-kotlin = "1.6.10"
-plugin-detekt = "1.20.0"
-plugin-fataar = "1.3.8"
-plugin-nexus = "1.1.0"
-plugin-publish = "0.20.0"
+plugin-kotlin = "1.7.0"
+plugin-detekt = "1.21.0"
+plugin-publish = "0.21.0"
 
 androidx-core = "1.8.0"
 androidx-appcompat = "1.4.2"
-activity-compose = "1.4.0"
-androidx-lifecycle = "2.4.1"
-androidx-fragment = "1.4.1"
+activity-compose = "1.5.0"
+androidx-lifecycle = "2.5.0"
+androidx-fragment = "1.5.0"
 androidx-datastore = "1.0.0"
 
+androidx-compose-compiler = "1.2.0"
 compose-version = "1.1.1"
-compose-navigation = "2.4.2"
+compose-navigation = "2.5.0"
 material = "1.6.1"
-material3 = "1.0.0-alpha13"
+material3 = "1.0.0-alpha14"
 
-navigation = "2.4.2"
+navigation = "2.5.0"
 viewbinding = "1.5.6"
 
-kotlinx-coroutines = "1.6.1"
+kotlinx-coroutines = "1.6.4"
 koin = "3.2.0"
 gson = "2.9.0"
 
@@ -31,8 +30,6 @@ vpnprotocols-version = "1.0.12"
 plugin-android = { module = "com.android.tools.build:gradle", version.ref = "plugin-android" }
 plugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "plugin-kotlin" }
 plugin-detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "plugin-detekt" }
-plugin-fataar = { module = "com.github.kezong:fat-aar", version.ref = "plugin-fataar" }
-plugin-nexus = { module = "io.github.gradle-nexus:publish-plugin", version.ref = "plugin-nexus" }
 plugin-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "plugin-publish" }
 
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
@@ -67,4 +64,4 @@ tim-shadowsocksr = { module = "io.github.tim06:shadowsocksr", version.ref = "vpn
 tim-openvpn = { module = "io.github.tim06:openvpn", version.ref = "vpnprotocols-version" }
 
 [bundles]
-plugins = ["plugin-android", "plugin-kotlin", "plugin-detekt", "plugin-fataar", "plugin-nexus", "plugin-publish"]
+plugins = ["plugin-android", "plugin-kotlin", "plugin-detekt", "plugin-publish"]

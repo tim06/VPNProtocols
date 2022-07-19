@@ -1,3 +1,4 @@
+@file:Suppress("TopLevelPropertyNaming")
 package com.tim.vpnprotocols.compose.openvpn
 
 /**
