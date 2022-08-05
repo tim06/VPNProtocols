@@ -15,6 +15,8 @@ android {
         applicationId = "com.tim.vpnprotocols"
         versionCode = 1
         versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -104,4 +106,11 @@ dependencies {
     implementation(libs.compose.uitooling)
     implementation(libs.compose.navigation)
     implementation(libs.material3)
+
+    //DataStore
+    implementation(libs.androidx.datastore)
+
+    //Test
+    testImplementation(libs.test.junit)
+    androidTestImplementation(libs.test.android.junit)
 }

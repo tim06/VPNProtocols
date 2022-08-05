@@ -63,6 +63,7 @@ fun buttonTextByState(state: ConnectionState): String = when (state) {
 fun isButtonEnabledByState(state: ConnectionState): Boolean = when (state) {
     ConnectionState.READYFORCONNECT,
     ConnectionState.CONNECTED,
+    ConnectionState.CONNECTING,
     ConnectionState.DISCONNECTED,
     ConnectionState.IDLE -> true
     else -> false

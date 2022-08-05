@@ -20,7 +20,8 @@
         <activity
             android:name=".compose.MainComposeActivity"
             android:exported="true"
-            android:theme="@style/Theme.VPNProtocols">
+            android:theme="@style/Theme.VPNProtocols"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

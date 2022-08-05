@@ -141,6 +141,8 @@ internal class ShadowsocksService : VpnService() {
 
         trafficMonitorThread?.stopThread()
         trafficMonitorThread = null
+
+        updateState(ConnectionState.DISCONNECTED)
     }
 
     private fun establish(): Int {
