@@ -11,7 +11,7 @@ dependencyResolutionManagement {
 }
 
 include(
-    ":app",
+    ":sample",
     ":base:notification",
     ":base:basevpn",
     ":protocols:openvpn",

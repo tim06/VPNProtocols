@@ -4,7 +4,3 @@ plugins {
 }
 
 setupLibraryModule("com.tim.notification", true)
-
-dependencies {
-    api(libs.androidx.core)
-}

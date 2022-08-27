@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.os.Build
-import androidx.core.app.NotificationCompat
 
 class NotificationHelper(
     private val service: Service,
@@ -15,12 +14,13 @@ class NotificationHelper(
     fun startNotification() {
         service.startForeground(1, createNotificationBuilder())
     }
-
+    @Suppress("DEPRECATION")
     fun stopNotification() {
         service.stopForeground(true)
         notificationManager.cancel(1)
     }
 
+    @Suppress("DEPRECATION")
     private fun createNotificationBuilder(): Notification {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel =
@@ -32,7 +32,12 @@ class NotificationHelper(
             channel.setSound(null, null)
             notificationManager.createNotificationChannel(channel)
         }
-        return NotificationCompat.Builder(service, CHANNEL_ID)
+        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(service, CHANNEL_ID)
+        } else {
+            Notification.Builder(service)
+        }
+        return builder
             .setWhen(0)
             .setSmallIcon(R.drawable.ic_key)
             //.setColor(ContextCompat.getColor(applicationContext, R.color.material_accent_500))

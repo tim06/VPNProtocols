@@ -9,12 +9,12 @@ Android client implementation of VPN. Supported protocols:
 Add library with Gradle
 ```
 # Groovy
-implementation 'io.github.tim06:openvpn:1.0.11'
-implementation 'io.github.tim06:shadowsocksr:1.0.11'
+implementation 'io.github.tim06:openvpn:1.0.13'
+implementation 'io.github.tim06:shadowsocksr:1.0.13'
 
 # Kotlin
-implementation("io.github.tim06:openvpn:1.0.11")
-implementation("io.github.tim06:shadowsocksr:1.0.11")
+implementation("io.github.tim06:openvpn:1.0.13")
+implementation("io.github.tim06:shadowsocksr:1.0.13")
 ```
 Easy to use with delegate access
 ```

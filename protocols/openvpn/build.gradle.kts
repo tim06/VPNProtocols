@@ -9,6 +9,4 @@ setupLibraryModule("com.tim.openvpn", true)
 dependencies {
     api(libs.tim.base)
     api(libs.tim.notification)
-
-    api(libs.androidx.lifecyclektx)
 }

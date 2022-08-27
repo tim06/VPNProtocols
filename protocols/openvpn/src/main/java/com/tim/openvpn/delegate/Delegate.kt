@@ -1,25 +1,17 @@
 package com.tim.openvpn.delegate
 
-import androidx.activity.ComponentActivity
-import androidx.activity.result.ActivityResultRegistryOwner
+import android.content.Context
+import com.tim.basevpn.delegate.VPNRunner
 import com.tim.basevpn.delegate.VpnConnectionServiceDelegate
 import com.tim.basevpn.state.ConnectionState
 import com.tim.openvpn.OpenVPNConfig
 import com.tim.openvpn.service.OpenVPNService
+import kotlin.properties.ReadOnlyProperty
 
-fun ComponentActivity.openVPN(
+fun openVPN(
     config: OpenVPNConfig,
-    stateListener: ((ConnectionState) -> Unit)
-) = (this as ActivityResultRegistryOwner).openVPN(
-    config = config,
-    stateListener = stateListener
-)
-
-fun ActivityResultRegistryOwner.openVPN(
-    config: OpenVPNConfig,
-    stateListener: ((ConnectionState) -> Unit)
-) = VpnConnectionServiceDelegate(
-    activityResultRegistryOwner = this,
+    stateListener: (ConnectionState) -> Unit
+): ReadOnlyProperty<Context, VPNRunner> = VpnConnectionServiceDelegate(
     config = config,
     clazz = OpenVPNService::class.java,
     stateListener = stateListener

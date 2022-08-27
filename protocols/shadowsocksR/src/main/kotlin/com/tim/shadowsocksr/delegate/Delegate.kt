@@ -1,11 +1,12 @@
 package com.tim.shadowsocksr.delegate
 
-import androidx.activity.ComponentActivity
-import androidx.activity.result.ActivityResultRegistryOwner
-import com.tim.basevpn.delegate.vpnDelegate
+import android.content.Context
+import com.tim.basevpn.delegate.VPNRunner
+import com.tim.basevpn.delegate.VpnConnectionServiceDelegate
 import com.tim.basevpn.state.ConnectionState
 import com.tim.shadowsocksr.ShadowsocksRVpnConfig
 import com.tim.shadowsocksr.service.ShadowsocksService
+import kotlin.properties.ReadOnlyProperty
 
 /**
  * Delegate for establish shadowsocksR
@@ -16,10 +17,11 @@ import com.tim.shadowsocksr.service.ShadowsocksService
  *
  * @Author: Timur Hojatov
  */
-fun ActivityResultRegistryOwner.shadowsocksR(
+fun shadowsocksR(
     config: ShadowsocksRVpnConfig,
     stateListener: ((ConnectionState) -> Unit)
-) = (this as ComponentActivity).vpnDelegate<ShadowsocksRVpnConfig, ShadowsocksService>(
+): ReadOnlyProperty<Context, VPNRunner> = VpnConnectionServiceDelegate(
     config = config,
+    clazz = ShadowsocksService::class.java,
     stateListener = stateListener
 )

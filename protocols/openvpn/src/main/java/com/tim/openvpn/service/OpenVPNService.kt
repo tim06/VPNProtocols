@@ -19,6 +19,7 @@ import com.tim.basevpn.utils.addRoutes
 import com.tim.basevpn.utils.sendCallback
 import com.tim.notification.NotificationHelper
 import com.tim.openvpn.OpenVPNConfig
+import com.tim.openvpn.VpnStatus
 import com.tim.openvpn.model.TunOptions
 import com.tim.openvpn.thread.OpenVPNThread
 import com.tim.openvpn.thread.OpenVpnManagementThread
@@ -76,12 +77,19 @@ internal class OpenVPNService : VpnService(), Handler.Callback, VpnServiceManage
             stateCallback.unregister(cb)
         }
     }
-
+    @Suppress("DEPRECATION")
     override fun onBind(intent: Intent?): IBinder? {
-        config = intent
-            ?.extras
-            ?.getParcelable(CONFIG_EXTRA)
-            ?: return null
+        config = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU) {
+            intent
+                ?.extras
+                ?.getParcelable(CONFIG_EXTRA)
+                ?: return null
+        } else {
+            intent
+                ?.extras
+                ?.getParcelable(CONFIG_EXTRA, OpenVPNConfig::class.java)
+                ?: return null
+        }
         notificationHelper.startNotification()
         return binder
     }
@@ -110,6 +118,7 @@ internal class OpenVPNService : VpnService(), Handler.Callback, VpnServiceManage
     }
 
     private fun startOpenVPN() {
+        VpnStatus.log("startOpenVPN")
         // Write OpenVPN binary
         val args = nativeLibsHelper.buildOpenvpnArgv()
 
@@ -125,6 +134,7 @@ internal class OpenVPNService : VpnService(), Handler.Callback, VpnServiceManage
         ) {
             endVpnService()
         }
+        VpnStatus.log("OpenVpnManagementThread init")
 
         // start a process thread
         processThread = Thread(
@@ -139,6 +149,7 @@ internal class OpenVPNService : VpnService(), Handler.Callback, VpnServiceManage
         ).apply {
             start()
         }
+        VpnStatus.log("processThread init")
     }
 
     /**

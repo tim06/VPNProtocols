@@ -10,7 +10,7 @@ import com.tim.shadowsocksr.BuildConfig
  *
  * @Author: Timur Hojatov
  */
-internal class GuardedProcess(private val cmd: List<String>) {
+internal class GuardedProcess(private val cmd: List<String?>) {
 
     private var thread: Thread? = null
     private var process: Process? = null

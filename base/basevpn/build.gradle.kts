@@ -5,8 +5,3 @@ plugins {
 }
 
 setupLibraryModule("com.tim.basevpn", true)
-
-dependencies {
-    api(libs.androidx.lifecyclektx)
-    api(libs.androidx.fragment)
-}

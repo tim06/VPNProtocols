@@ -3,6 +3,7 @@ package com.tim.shadowsocksr.service
 import android.app.NotificationManager
 import android.content.Intent
 import android.net.VpnService
+import android.os.Build
 import android.os.IBinder
 import android.os.ParcelFileDescriptor
 import android.util.Log
@@ -84,12 +85,19 @@ internal class ShadowsocksService : VpnService() {
             stateCallback.unregister(cb)
         }
     }
-
+    @Suppress("DEPRECATION")
     override fun onBind(intent: Intent?): IBinder? {
-        config = intent
-            ?.extras
-            ?.getParcelable(CONFIG_EXTRA)
-            ?: return null
+        config = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU) {
+            intent
+                ?.extras
+                ?.getParcelable(CONFIG_EXTRA)
+                ?: return null
+        } else {
+            intent
+                ?.extras
+                ?.getParcelable(CONFIG_EXTRA, ShadowsocksRVpnConfig::class.java)
+                ?: return null
+        }
         notificationHelper.startNotification()
         return binder
     }
@@ -118,7 +126,7 @@ internal class ShadowsocksService : VpnService() {
         val fd = establish()
         if (!sendFileDescriptor(fd)) {
             if (BuildConfig.DEBUG) {
-                Log.e("ShadowsocksService","sendFd failed")
+                Log.e("ShadowsocksService", "sendFd failed")
             }
             stop()
             return
@@ -147,10 +155,10 @@ internal class ShadowsocksService : VpnService() {
 
     private fun establish(): Int {
         connection = Builder().apply {
-            setSession(config.name)
+            setSession(config.name.orEmpty())
             setMtu(CONNECTION_MTU)
             addAddress(ADDRESS_ROUTE, ADDRESS_PREFIX_LENGTH)
-            addDnsServer(config.dnsAddress)
+            addDnsServer(config.dnsAddress.orEmpty())
 
             resources.getStringArray(R.array.bypass_private_route)
                 .associate { route ->
@@ -160,7 +168,7 @@ internal class ShadowsocksService : VpnService() {
                     addRoute(map.key, map.value)
                 }
 
-            addRoute(config.dnsAddress, DNS_PREFIX_LENGTH)
+            addRoute(config.dnsAddress.orEmpty(), DNS_PREFIX_LENGTH)
         }.establish() ?: run {
             if (BuildConfig.DEBUG) {
                 Log.e("ShadowsocksService", "No connection")
