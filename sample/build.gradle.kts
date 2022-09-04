@@ -82,6 +82,8 @@ dependencies {
     //Modules
     implementation(libs.tim.openvpn)
     implementation(libs.tim.shadowsocksr)
+    //implementation(project(":protocols:openvpn"))
+    //implementation(project(":protocols:shadowsocksR"))
 
     //AndroidX
     implementation(libs.androidx.core)

@@ -40,9 +40,7 @@ fun OpenVPNScreen(
     val configFilePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
-        uri?.let {
-            viewModel.saveConfigWithPath(it)
-        }
+        uri?.let { viewModel.saveConfigWithPath(it) }
     }
 
     var config by remember { mutableStateOf<OpenVPNConfig?>(null) }
@@ -56,14 +54,7 @@ fun OpenVPNScreen(
                 actions = {
                     IconButton(
                         onClick = {
-                            configFilePicker.launch(
-                                arrayOf(
-                                    "application/x-openvpn-profile",
-                                    "application/openvpn-profile",
-                                    "application/ovpn",
-                                    "*/*"
-                                )
-                            )
+                            configFilePicker.launch(ovpnMimeTypes)
                         }
                     ) {
                         Icon(
@@ -117,14 +108,7 @@ fun OpenVPNEmptyScreen(
             Text(text = "Config not found, configure params in settings")
             Button(
                 onClick = {
-                    configFilePicker.launch(
-                        arrayOf(
-                            "application/x-openvpn-profile",
-                            "application/openvpn-profile",
-                            "application/ovpn",
-                            "*/*"
-                        )
-                    )
+                    configFilePicker.launch(ovpnMimeTypes)
                 }
             ) {
                 Text(text = "Import config")

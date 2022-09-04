@@ -28,7 +28,6 @@ internal class OpenVPNThread(
             VpnStatus.log(TAG, "OpenVPN process exited")
         }.onFailure { e ->
             VpnStatus.log("Starting OpenVPN Thread", e.message)
-            VpnStatus.log(TAG, "OpenVPNThread Got $e")
         }.also {
             runCatching {
                 process?.waitFor()

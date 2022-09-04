@@ -5,37 +5,37 @@ import android.net.LocalSocket
 import android.net.LocalSocketAddress
 import com.tim.basevpn.state.ConnectionState
 import com.tim.openvpn.VpnStatus
-import com.tim.openvpn.command.parser.processInput
-import com.tim.openvpn.command.sender.managementCommand
 import com.tim.openvpn.model.TunOptions
+import com.tim.openvpn.utils.sendMessage
+import com.tim.openvpn.service.FileDescriptorProtector
 import com.tim.openvpn.service.OpenVPNService
-import com.tim.openvpn.service.VpnServiceManager
-import java.io.FileDescriptor
+import com.tim.openvpn.service.TunOpener
 import java.io.IOException
+import kotlin.properties.Delegates
 
 /**
  * OpenVPN management thread
- *
- * Receive and send messages in [processInput]
- * over [managementCommand]
  *
  * @Author: Timur Hojatov
  */
 internal class OpenVpnManagementThread(
     cacheDir: String,
-    val vpnServiceManager: VpnServiceManager,
-    val stateListener: (ConnectionState) -> Unit,
+    tunOpener: TunOpener,
+    fileDescriptorProtector: FileDescriptorProtector,
+    stateListener: (ConnectionState) -> Unit,
     onEndService: () -> Unit
 ) : Runnable {
 
-    private val activeThreads = mutableListOf<OpenVpnManagementThread>()
-    var tunOptions: TunOptions? = null
+    private val openVPNMessageProcessor = OpenVPNMessageProcessor(
+        tunOpener,
+        fileDescriptorProtector,
+        stateListener
+    ) {
+        stopVPN()
+    }
 
-    var socket: LocalSocket? = null
-    private var serverSocket: LocalServerSocket? = null
-
-    val fdList = mutableListOf<FileDescriptor>()
-    var isShuttingDown = false
+    private var socket by Delegates.notNull<LocalSocket>()
+    private var serverSocket by Delegates.notNull<LocalServerSocket>()
 
     init {
         if (openManagementInterface(cacheDir)) {
@@ -51,45 +51,42 @@ internal class OpenVpnManagementThread(
     override fun run() {
         val buffer = ByteArray(BUFFER_SIZE)
 
-        synchronized(activeThreads) {
-            activeThreads.add(this)
-        }
-
         runCatching {
             // Wait for a client to connect
-            socket = serverSocket?.accept()
-            val instream = socket?.inputStream
+            socket = serverSocket.accept().also {
+                openVPNMessageProcessor.setSocket(it)
+            }
+
+            val inputStream = socket.inputStream
 
             // Close the management socket after client connected
             try {
-                serverSocket?.close()
+                serverSocket.close()
             } catch (e: IOException) {
                 VpnStatus.log(e.message)
             }
 
             // Closing one of the two sockets also closes the other
-            managementCommand("version 3\n")
+            socket.sendMessage("version 3\n")
 
             while (true) {
-                val numbytesread = instream?.read(buffer)
-                if (numbytesread == null || numbytesread == -1) {
+                val numberOfReadBytes = inputStream?.read(buffer)
+                if (numberOfReadBytes == null || numberOfReadBytes == -1) {
                     return
                 }
 
                 runCatching {
-                    socket?.ancillaryFileDescriptors?.let {
-                        fdList.addAll(it)
+                    socket.ancillaryFileDescriptors?.let { fileDescriptors ->
+                        openVPNMessageProcessor.setFileDescriptors(fileDescriptors)
                     }
                 }.onFailure { error ->
                     VpnStatus.log("Error reading fds from socket", error.message)
                 }
-                processInput(String(buffer, 0, numbytesread, Charsets.UTF_8))
+                val message = String(buffer, 0, numberOfReadBytes, Charsets.UTF_8)
+                openVPNMessageProcessor.process(message)
             }
         }.onFailure { error ->
-            VpnStatus.log(error.message)
-        }
-        synchronized(activeThreads) {
-            activeThreads.remove(this)
+            VpnStatus.log("OpenVPN Thread error: ${error.message}")
         }
     }
 
@@ -127,45 +124,21 @@ internal class OpenVpnManagementThread(
         return false
     }
 
-    fun stopVPN(): Boolean {
-        val stopSucceed = stopOpenVPN()
-        if (stopSucceed) {
-            isShuttingDown = true
+    fun stopVPN(): Boolean = socket.run {
+        runCatching {
+            sendMessage("signal SIGINT\n")
+            close()
         }
-        return stopSucceed
+        true
     }
 
-    private fun stopOpenVPN(): Boolean {
-        synchronized(activeThreads) {
-            var sendCMD = false
-            for (mt in activeThreads) {
-                sendCMD = mt.managementCommand("signal SIGINT\n")
-                runCatching {
-                    mt.socket?.close()
-                }
-            }
-            return sendCMD
-        }
-    }
+    fun setTunOptions(tunOptions: TunOptions? = null) =
+        openVPNMessageProcessor.setTunOptions(tunOptions)
 
     companion object {
         private const val BUFFER_SIZE = 2048
 
         private const val TRIES_COUNT = 9
         private const val THREAD_SLEEP_TIME = 300L
-
-        const val INFO = "INFO"
-        const val HOLD = "HOLD"
-        const val NEED_OK = "NEED-OK"
-        const val STATE = "STATE"
-        const val PROXY = "PROXY"
-        const val LOG = "LOG"
-
-        // Currently no action
-        const val DNSSERVER = "DNSSERVER"
-        const val DNSDOMAIN = "DNSDOMAIN"
-        const val ROUTE = "ROUTE"
-
-        const val SUCCESS_START = "SUCCESS:"
     }
 }

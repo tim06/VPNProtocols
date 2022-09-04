@@ -1,35 +1,11 @@
-package com.tim.vpnprotocols.parser
-
-import android.content.ContentResolver
-import android.net.Uri
-import android.util.Log
-import androidx.core.net.toFile
-import com.tim.openvpn.OpenVPNConfig
+package com.tim.openvpn
 
 /**
  * @Author: Тимур Ходжатов
  */
-class OpenVPNConfigParser(
-    private val contentResolver: ContentResolver
-) : ConfigParser<OpenVPNConfig> {
+class OpenVPNConfigParser {
 
-    override fun parseConfig(uri: Uri): OpenVPNConfig? {
-        return contentResolver.openInputStream(uri).use { inputStream ->
-            inputStream?.readBytes()?.decodeToString()
-        }?.let { content ->
-            configFromLines(content.lines())
-        }
-    }
-
-    /*fun parseOvpnConfig(fileContent: String): OpenVPNConfig {
-        return configFromLines(fileContent.lines())
-    }
-
-    fun parseOvpnConfig(uri: Uri): OpenVPNConfig = uri.toFile().useLines { lines ->
-        configFromLines(lines.toList())
-    }*/
-
-    private fun configFromLines(lines: List<String>): OpenVPNConfig {
+    fun configFromLines(lines: List<String>): OpenVPNConfig {
         var config = OpenVPNConfig(type = "tcp-client")
         lines.forEach { line ->
             when {
@@ -51,7 +27,7 @@ class OpenVPNConfigParser(
                     config = config.copy(auth = cipher)
                 }
                 else -> {
-                    Log.d("ConfigParser", "Unknown config param: $line")
+                    VpnStatus.log("ConfigParser", "Unknown config param: $line")
                 }
             }
         }

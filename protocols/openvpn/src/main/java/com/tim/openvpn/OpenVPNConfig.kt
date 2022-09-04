@@ -32,6 +32,7 @@ data class OpenVPNConfig(
             append("client\n")
             append("verb 4\n")
             append("connect-retry 2 300\n")
+            append("connect-retry-max 3\n")
             append("resolv-retry 60\n")
             append("dev tun\n")
 

@@ -6,11 +6,7 @@ import com.tim.openvpn.model.TunOptions
 /**
  * @Author: Timur Hojatov
  */
-internal interface VpnServiceManager {
-    /**
-     * Call [android.net.VpnService.protect]
-     */
-    fun protectFd(fileDescriptor: Int)
+interface TunOpener {
     /**
      * Create [android.net.VpnService.Builder] with [android.net.VpnService.Builder.establish]
      */

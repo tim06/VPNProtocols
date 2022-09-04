@@ -11,7 +11,6 @@ import android.os.ParcelFileDescriptor
 import android.os.Build
 import com.tim.basevpn.IConnectionStateListener
 import com.tim.basevpn.IVPNService
-import com.tim.basevpn.R
 import com.tim.basevpn.delegate.StateDelegate
 import com.tim.basevpn.state.ConnectionState
 import com.tim.basevpn.utils.CONFIG_EXTRA
@@ -24,8 +23,10 @@ import com.tim.openvpn.model.TunOptions
 import com.tim.openvpn.thread.OpenVPNThread
 import com.tim.openvpn.thread.OpenVpnManagementThread
 import com.tim.openvpn.utils.NativeLibsHelper
+import kotlin.properties.Delegates
 
-internal class OpenVPNService : VpnService(), Handler.Callback, VpnServiceManager {
+internal class OpenVPNService : VpnService(), Handler.Callback, TunOpener,
+    FileDescriptorProtector {
 
     private val nativeDir by lazy {
         applicationContext.applicationInfo.nativeLibraryDir
@@ -50,6 +51,7 @@ internal class OpenVPNService : VpnService(), Handler.Callback, VpnServiceManage
     private val nativeLibsHelper by lazy {
         NativeLibsHelper(applicationContext)
     }
+
     private var management: OpenVpnManagementThread? = null
     private var processThread: Thread? = null
     private val stateCallback by StateDelegate()
@@ -64,9 +66,7 @@ internal class OpenVPNService : VpnService(), Handler.Callback, VpnServiceManage
         }
 
         override fun stopVPN() {
-            stateCallback.sendCallback { it.stateChanged(ConnectionState.DISCONNECTING) }
-            management?.stopVPN()
-            stateCallback.sendCallback { it.stateChanged(ConnectionState.DISCONNECTED) }
+            stopOpenVPN()
         }
 
         override fun registerCallback(cb: IConnectionStateListener?) {
@@ -77,6 +77,7 @@ internal class OpenVPNService : VpnService(), Handler.Callback, VpnServiceManage
             stateCallback.unregister(cb)
         }
     }
+
     @Suppress("DEPRECATION")
     override fun onBind(intent: Intent?): IBinder? {
         config = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU) {
@@ -104,7 +105,7 @@ internal class OpenVPNService : VpnService(), Handler.Callback, VpnServiceManage
         }
     }
 
-    override fun protectFd(fileDescriptor: Int) {
+    override fun protectFileDescriptor(fileDescriptor: Int) {
         protect(fileDescriptor)
     }
 
@@ -125,7 +126,8 @@ internal class OpenVPNService : VpnService(), Handler.Callback, VpnServiceManage
         // start a Thread that handles incoming messages of the management socket
         management = OpenVpnManagementThread(
             cacheDir = cacheDir,
-            vpnServiceManager = this,
+            tunOpener = this as TunOpener,
+            fileDescriptorProtector = this as FileDescriptorProtector,
             stateListener = { state ->
                 stateCallback.sendCallback { callback ->
                     callback.stateChanged(state)
@@ -152,6 +154,19 @@ internal class OpenVPNService : VpnService(), Handler.Callback, VpnServiceManage
         VpnStatus.log("processThread init")
     }
 
+    private fun stopOpenVPN() {
+        VpnStatus.log("stopOpenVPN")
+
+        stateCallback.sendCallback { it.stateChanged(ConnectionState.DISCONNECTING) }
+        management?.stopVPN()
+        stateCallback.sendCallback { it.stateChanged(ConnectionState.DISCONNECTED) }
+        if (processThread?.isInterrupted == false) {
+            processThread?.interrupt()
+        }
+        management = null
+        processThread = null
+    }
+
     /**
      * Establish connection with [tunOptions]
      */
@@ -167,7 +182,7 @@ internal class OpenVPNService : VpnService(), Handler.Callback, VpnServiceManage
         }
 
         // Reset information
-        management?.tunOptions = null
+        management?.setTunOptions()
 
         return runCatching {
             val tun = builder.establish()
@@ -180,7 +195,7 @@ internal class OpenVPNService : VpnService(), Handler.Callback, VpnServiceManage
     }
 
     private fun endVpnService() {
-        notificationHelper.stopNotification()
+        //notificationHelper.stopNotification()
     }
 
     companion object {
