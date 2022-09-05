@@ -7,20 +7,23 @@ import com.tim.vpnprotocols.compose.edit.base.ConfigItem
  * @Author: Тимур Ходжатов
  */
 class ShadowsocksrRowsImpl : ConfigRows<ShadowsocksRVpnConfig> {
-    override fun getRowsForConfig(config: ShadowsocksRVpnConfig?): List<ConfigItem> = listOf(
-        ConfigItem(KEY_NAME, "Name", config?.name.orEmpty()),
-        ConfigItem(KEY_HOST, "Host", config?.host.orEmpty()),
-        ConfigItem(KEY_LOCAL_PORT, "Local port", config?.localPort?.toString().orEmpty()),
-        ConfigItem(KEY_REMOTE_PORT, "Remote port", config?.remotePort?.toString().orEmpty()),
-        ConfigItem(KEY_PASSWORD, "Password", config?.password.orEmpty()),
-        ConfigItem(KEY_PROTOCOL, "Protocol", config?.protocol.orEmpty()),
-        ConfigItem(KEY_PROTOCOL_PARAM, "Protocol param", config?.protocolParam.orEmpty()),
-        ConfigItem(KEY_OBFS, "Obfs", config?.obfs.orEmpty()),
-        ConfigItem(KEY_OBFS_PARAM, "Obfs param", config?.obfsParam.orEmpty()),
-        ConfigItem(KEY_METHOD, "Method", config?.method.orEmpty()),
-        ConfigItem(KEY_DNS_ADDRESS, "DNS address", config?.dnsAddress.orEmpty()),
-        ConfigItem(KEY_DNS_PORT, "DNS port", config?.dnsPort.orEmpty())
-    )
+    override fun getRowsForConfig(config: ShadowsocksRVpnConfig?): List<ConfigItem> {
+        val conf = config ?: ShadowsocksRVpnConfig()
+        return listOf(
+            ConfigItem(KEY_NAME, "Name", conf.name.orEmpty()),
+            ConfigItem(KEY_HOST, "Host", conf.host.orEmpty()),
+            ConfigItem(KEY_LOCAL_PORT, "Local port", conf.localPort?.toString().orEmpty()),
+            ConfigItem(KEY_REMOTE_PORT, "Remote port", conf.remotePort?.toString().orEmpty()),
+            ConfigItem(KEY_PASSWORD, "Password", conf.password.orEmpty()),
+            ConfigItem(KEY_PROTOCOL, "Protocol", conf.protocol.orEmpty()),
+            ConfigItem(KEY_PROTOCOL_PARAM, "Protocol param", conf.protocolParam.orEmpty()),
+            ConfigItem(KEY_OBFS, "Obfs", conf.obfs.orEmpty()),
+            ConfigItem(KEY_OBFS_PARAM, "Obfs param", conf.obfsParam.orEmpty()),
+            ConfigItem(KEY_METHOD, "Method", conf.method.orEmpty()),
+            ConfigItem(KEY_DNS_ADDRESS, "DNS address", conf.dnsAddress.orEmpty()),
+            ConfigItem(KEY_DNS_PORT, "DNS port", conf.dnsPort.orEmpty())
+        )
+    }
 
     @Suppress("ComplexMethod")
     override fun getConfigFromRows(rows: List<ConfigItem>): ShadowsocksRVpnConfig {

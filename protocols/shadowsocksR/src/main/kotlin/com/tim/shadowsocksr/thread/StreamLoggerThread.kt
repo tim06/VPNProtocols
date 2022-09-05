@@ -16,9 +16,7 @@ internal class StreamLoggerThread(private val inputStream: InputStream) : Thread
         runCatching {
             inputStream.bufferedReader().use { reader ->
                 reader.lineSequence().forEach {
-                    if (BuildConfig.DEBUG) {
-                        Log.d("StreamLogger", "Message $it")
-                    }
+                    Log.d("StreamLogger", "Message $it")
                 }
             }
         }

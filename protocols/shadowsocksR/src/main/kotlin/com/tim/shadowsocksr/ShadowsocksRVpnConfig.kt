@@ -6,7 +6,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class ShadowsocksRVpnConfig(
     val name: String? = "ShadowsocksR Config",
-    var host: String? = "",
+    val host: String? = "",
     val localPort: Int? = 1080,
     val remotePort: Int? = 443,
     val password: String? = "",

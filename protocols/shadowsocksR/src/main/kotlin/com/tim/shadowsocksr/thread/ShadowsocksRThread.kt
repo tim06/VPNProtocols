@@ -61,17 +61,13 @@ internal class ShadowsocksRThread(
                     input?.close()
                     output?.close()
                 }.onFailure { error ->
-                    if (BuildConfig.DEBUG) {
-                        Log.e("ShadowsocksRThread", "Error when protect socket: $error")
-                    }
+                    Log.e("ShadowsocksRThread", "Error when protect socket: $error")
                 }
                 runCatching {
                     servSocket?.close()
                 }
             }.onFailure {
-                if (BuildConfig.DEBUG) {
-                    Log.e("ShadowsocksRThread", "Error when accept socket")
-                }
+                Log.e("ShadowsocksRThread", "Error when accept socket")
                 initServerSocket()
             }
         }
@@ -99,9 +95,7 @@ internal class ShadowsocksRThread(
             serverSocket = LocalServerSocket(localSocket.fileDescriptor)
             true
         } catch (e: IOException) {
-            if (BuildConfig.DEBUG) {
-                Log.e("ShadowsocksRThread", "$e")
-            }
+            Log.e("ShadowsocksRThread", "$e")
             false
         }
     }

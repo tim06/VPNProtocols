@@ -5,17 +5,19 @@ package com.tim.vpnprotocols.compose.shadowsocksr
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.tim.shadowsocksr.ShadowsocksRVpnConfig
+import com.tim.vpnprotocols.compose.CONFIG_EDIT_SCREEN
 import com.tim.vpnprotocols.compose.base.AppTopBar
 import com.tim.vpnprotocols.compose.base.VpnScreen
 import com.tim.vpnprotocols.compose.edit.ConfigEditViewModel
+import com.tim.vpnprotocols.compose.navigation.VpnProtocol
 import com.tim.vpnprotocols.compose.shadowsocksr.controller.rememberShadowsocksRController
 import org.koin.androidx.compose.getViewModel
 import org.koin.core.qualifier.named
@@ -39,6 +41,20 @@ fun ShadowsocksRScreen(
         topBar = {
             AppTopBar(title = "ShadowsocksR") {
                 navController.popBackStack()
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate(
+                        route = "$CONFIG_EDIT_SCREEN/${VpnProtocol.SHADOWSOCKSR}"
+                    )
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Settings"
+                )
             }
         }
     ) { paddingValues ->

@@ -14,5 +14,7 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 fun VpnProtocol.getViewModel() = when (this) {
     VpnProtocol.OPENVPN -> getViewModel<ConfigEditViewModel<OpenVPNConfig>>(named(OpenVPNConfig::class.java.name))
-    VpnProtocol.SHADOWSOCKSR -> getViewModel<ConfigEditViewModel<ShadowsocksRVpnConfig>>()
+    VpnProtocol.SHADOWSOCKSR -> getViewModel<ConfigEditViewModel<ShadowsocksRVpnConfig>>(
+        named(ShadowsocksRVpnConfig::class.java.name)
+    )
 }

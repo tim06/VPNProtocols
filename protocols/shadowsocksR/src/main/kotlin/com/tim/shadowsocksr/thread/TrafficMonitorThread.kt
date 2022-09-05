@@ -45,26 +45,20 @@ internal class TrafficMonitorThread(
                     val data = input?.read(buffer)
                     if (data != BYTE_ARRAY_SIZE) throw IOException("Unexpected traffic stat length")
                     val stat = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN)
-                    if (BuildConfig.DEBUG) {
-                        Log.d("TrafficMonitor", "${stat.getLong(0)}, ${stat.getLong(LOG_INDEX)}")
-                    }
+                    Log.d("TrafficMonitor", "${stat.getLong(0)}, ${stat.getLong(LOG_INDEX)}")
                     output?.write(0)
 
                     input.close()
                     output?.close()
                 }.onFailure { error ->
-                    if (BuildConfig.DEBUG) {
-                        Log.e("TrafficMonitor", "Error when recv traffic stat: $error")
-                    }
+                    Log.e("TrafficMonitor", "Error when recv traffic stat: $error")
                 }
 
                 runCatching {
                     servSocket?.close()
                 }
             }.onFailure {
-                if (BuildConfig.DEBUG) {
-                    Log.e("TrafficMonitor", "Error when accept socket")
-                }
+                Log.e("TrafficMonitor", "Error when accept socket")
                 initServerSocket()
             }
         }
@@ -92,9 +86,7 @@ internal class TrafficMonitorThread(
             serverSocket = LocalServerSocket(localSocket.fileDescriptor)
             true
         } catch (e: IOException) {
-            if (BuildConfig.DEBUG) {
-                Log.e("TrafficMonitor", "$e")
-            }
+            Log.e("TrafficMonitor", "$e")
             false
         }
     }

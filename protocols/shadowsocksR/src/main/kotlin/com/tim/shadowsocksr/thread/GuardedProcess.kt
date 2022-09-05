@@ -22,9 +22,7 @@ internal class GuardedProcess(private val cmd: List<String?>) {
             {
                 runCatching {
                     while (isDestroyed.not()) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d("GuardedProcess","start process: $cmd")
-                        }
+                        Log.d("GuardedProcess","start process: $cmd")
 
                         val startTime = System.currentTimeMillis()
 
@@ -44,17 +42,13 @@ internal class GuardedProcess(private val cmd: List<String?>) {
 
                         synchronized(this) {
                             if (System.currentTimeMillis() - startTime < START_TIME_TIMER_DELAY) {
-                                if (BuildConfig.DEBUG) {
-                                    Log.w("GuardedProcess", "process exit too fast, stop guard: $cmd")
-                                }
+                                Log.w("GuardedProcess", "process exit too fast, stop guard: $cmd")
                                 isDestroyed = true
                             }
                         }
                     }
                 }.onFailure {
-                    if (BuildConfig.DEBUG) {
-                        Log.e("GuardedProcess", "thread interrupt, destroy process: $cmd")
-                    }
+                    Log.e("GuardedProcess", "thread interrupt, destroy process: $cmd")
                     process?.destroy()
                 }
             },

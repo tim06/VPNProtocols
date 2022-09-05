@@ -16,6 +16,8 @@ internal class ConfigWriter(
     private val config: ShadowsocksRVpnConfig
 ) {
 
+    private val localPort = config.localPort ?: DEFAULT_LOCAL_PORT
+
     fun printConfigsToFiles(
         dataDir: String,
         protectPath: String
@@ -87,7 +89,7 @@ internal class ConfigWriter(
         "--netif-netmask",
         "255.255.255.0",
         "--socks-server-addr",
-        "127.0.0.1:${config.localPort}",
+        "127.0.0.1:${localPort}",
         "--tunfd",
         fd,
         "--tunmtu",
@@ -97,13 +99,13 @@ internal class ConfigWriter(
         "--loglevel",
         "3",
         "--dnsgw",
-        "172.19.0.1:${config.localPort?.toString().orEmpty() + TUN2SOCKS_PLUS_PORT}"
+        "172.19.0.1:${localPort + TUN2SOCKS_PLUS_PORT}"
     )
 
     private fun buildShadowsocksDaemonConfig(): String = "{" +
             "\"server\": \"${config.host}\", " +
             "\"server_port\": ${config.remotePort}, " +
-            "\"local_port\": ${config.localPort}, " +
+            "\"local_port\": ${localPort}, " +
             "\"password\": \"${config.password}\", " +
             "\"method\": \"${config.method}\", " +
             "\"timeout\": ${SHADOWSOCKS_DAEMON_TIMEOUT}, " +
@@ -116,7 +118,7 @@ internal class ConfigWriter(
     private fun buildDnsTunnelConfig(): String = "{" +
             "\"server\": \"${config.host}\", " +
             "\"server_port\": ${config.remotePort}, " +
-            "\"local_port\": ${config.localPort?.toString().orEmpty() + DNS_TUNNEL_PLUS_PORT}, " +
+            "\"local_port\": ${localPort + DNS_TUNNEL_PLUS_PORT}, " +
             "\"password\": \"${config.password}\", " +
             "\"method\": \"${config.method}\", " +
             "\"timeout\": ${DNS_TUNNEL_TIMEOUT}, " +
@@ -134,7 +136,7 @@ internal class ConfigWriter(
             "protect = \"${protectPath}\";" +
             "cache_dir = \"${dataDir}\";" +
             "server_ip = 0.0.0.0;" +
-            "server_port = ${config.localPort?.toString().orEmpty() + DNS_DAEMON_GLOBAL_PLUS_PORT};" +
+            "server_port = ${localPort + DNS_DAEMON_GLOBAL_PLUS_PORT};" +
             "query_method = tcp_only;" +
             "min_ttl = 15m;" +
             "max_ttl = 1w;" +
@@ -144,7 +146,7 @@ internal class ConfigWriter(
             "server {" +
             "label = \"local\";" +
             "ip = 127.0.0.1;" +
-            "port = ${config.localPort?.toString().orEmpty() + DNS_DAEMON_SERVER_PLUS_PORT};" +
+            "port = ${localPort + DNS_DAEMON_SERVER_PLUS_PORT};" +
             "reject = 224.0.0.0/3, ::/0;" +
             "reject_policy = negate;" +
             "reject_recursively = on;" +
@@ -168,6 +170,8 @@ internal class ConfigWriter(
         private const val SSTUNNEL_CONFIG_FILE_NAME = "ss-tunnel-vpn.conf"
 
         private const val LIB_TUN_SOCKS_FILE_NAME = "libtun2socks.so"
+
+        private const val DEFAULT_LOCAL_PORT = 1080
 
         private const val SHADOWSOCKS_DAEMON_TIMEOUT = 600
         private const val TUN2SOCKS_PLUS_PORT = 53

@@ -108,6 +108,7 @@ internal class ShadowsocksService : VpnService() {
     }
 
     private fun start() {
+        Log.d("ShadowsocksService", "start()")
         trafficMonitorThread = TrafficMonitorThread(statPath).also { monitor ->
             monitor.start()
         }
@@ -125,9 +126,7 @@ internal class ShadowsocksService : VpnService() {
 
         val fd = establish()
         if (!sendFileDescriptor(fd)) {
-            if (BuildConfig.DEBUG) {
-                Log.e("ShadowsocksService", "sendFd failed")
-            }
+            Log.e("ShadowsocksService", "sendFd failed")
             stop()
             return
         }
@@ -170,9 +169,7 @@ internal class ShadowsocksService : VpnService() {
 
             addRoute(config.dnsAddress.orEmpty(), DNS_PREFIX_LENGTH)
         }.establish() ?: run {
-            if (BuildConfig.DEBUG) {
-                Log.e("ShadowsocksService", "No connection")
-            }
+            Log.e("ShadowsocksService", "No connection")
             return -1
         }
 
