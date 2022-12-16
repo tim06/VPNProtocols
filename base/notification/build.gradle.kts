@@ -1,6 +1,7 @@
 plugins {
-    id("com.android.library")
-    kotlin("android")
+    id("vpnprotocols.android.library")
 }
 
-setupLibraryModule("com.tim.notification", true)
+android {
+    namespace = "com.tim.notification"
+}

@@ -1,10 +1,10 @@
 plugins {
-    id("com.android.library")
-    kotlin("android")
-    id("kotlin-parcelize")
+    id("vpnprotocols.android.library")
 }
 
-setupLibraryModule("com.tim.shadowsocksr", true)
+android {
+    namespace = "com.tim.shadowsocksr"
+}
 
 dependencies {
     api(libs.tim.base)

@@ -4,11 +4,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.net.VpnService
-import android.os.Handler
-import android.os.IBinder
-import android.os.Message
-import android.os.ParcelFileDescriptor
-import android.os.Build
+import android.os.*
 import com.tim.basevpn.IConnectionStateListener
 import com.tim.basevpn.IVPNService
 import com.tim.basevpn.delegate.StateDelegate
@@ -23,7 +19,6 @@ import com.tim.openvpn.model.TunOptions
 import com.tim.openvpn.thread.OpenVPNThread
 import com.tim.openvpn.thread.OpenVpnManagementThread
 import com.tim.openvpn.utils.NativeLibsHelper
-import kotlin.properties.Delegates
 
 internal class OpenVPNService : VpnService(), Handler.Callback, TunOpener,
     FileDescriptorProtector {

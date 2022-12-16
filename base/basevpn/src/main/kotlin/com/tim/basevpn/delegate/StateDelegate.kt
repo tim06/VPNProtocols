@@ -2,7 +2,6 @@ package com.tim.basevpn.delegate
 
 import android.os.RemoteCallbackList
 import com.tim.basevpn.IConnectionStateListener
-import com.tim.basevpn.IVPNService
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 

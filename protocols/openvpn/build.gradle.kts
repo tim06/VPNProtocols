@@ -1,10 +1,10 @@
 plugins {
-    id("com.android.library")
-    kotlin("android")
-    id("kotlin-parcelize")
+    id("vpnprotocols.android.library")
 }
 
-setupLibraryModule("com.tim.openvpn", true)
+android {
+    namespace = "com.tim.openvpn"
+}
 
 dependencies {
     testImplementation(libs.test.junit)

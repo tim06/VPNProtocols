@@ -1,7 +1,6 @@
 package com.tim.shadowsocksr.thread
 
 import android.util.Log
-import com.tim.shadowsocksr.BuildConfig
 
 /**
  * [Process] runner

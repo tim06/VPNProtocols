@@ -9,14 +9,13 @@ import android.os.ParcelFileDescriptor
 import android.util.Log
 import com.tim.basevpn.IConnectionStateListener
 import com.tim.basevpn.IVPNService
+import com.tim.basevpn.R
 import com.tim.basevpn.delegate.StateDelegate
 import com.tim.basevpn.state.ConnectionState
 import com.tim.basevpn.utils.CONFIG_EXTRA
 import com.tim.basevpn.utils.sendCallback
 import com.tim.notification.NotificationHelper
 import com.tim.shadowsocksr.Native
-import com.tim.basevpn.R
-import com.tim.shadowsocksr.BuildConfig
 import com.tim.shadowsocksr.ShadowsocksRVpnConfig
 import com.tim.shadowsocksr.config.ConfigWriter
 import com.tim.shadowsocksr.thread.GuardedProcess

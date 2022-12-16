@@ -5,7 +5,6 @@ import android.net.LocalServerSocket
 import android.net.LocalSocket
 import android.net.LocalSocketAddress
 import android.util.Log
-import com.tim.shadowsocksr.BuildConfig
 import com.tim.shadowsocksr.Native
 import java.io.File
 import java.io.FileDescriptor

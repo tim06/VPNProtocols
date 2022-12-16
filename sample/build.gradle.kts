@@ -1,20 +1,15 @@
 plugins {
-    id("com.android.application")
-    kotlin("android")
-    id("kotlin-parcelize")
+    id("vpnprotocols.android.application")
+    id("vpnprotocols.android.application.compose")
 }
 
 android {
     namespace = "com.tim.vpnprotocols"
-    compileSdk = (findProperty("android.compileSdk") as String).toInt()
 
     defaultConfig {
-        minSdk = (findProperty("android.minSdk") as String).toInt()
-        targetSdk = (findProperty("android.targetSdk") as String).toInt()
-
         applicationId = "com.tim.vpnprotocols"
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -44,31 +39,11 @@ android {
             versionNameSuffix = "-debug"
 
             isMinifyEnabled = false
-            proguardFiles(
-                "proguard-rules.pro",
-                getDefaultProguardFile("proguard-android-optimize.txt")
-            )
         }
     }
 
     buildFeatures {
         viewBinding = true
-        compose = true
-    }
-
-    sourceSets["main"].jniLibs.srcDir("src/main/jniLibs")
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.androidx.compose.compiler.get()
     }
 
     packagingOptions {

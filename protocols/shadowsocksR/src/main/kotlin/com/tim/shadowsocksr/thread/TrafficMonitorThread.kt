@@ -4,7 +4,6 @@ import android.net.LocalServerSocket
 import android.net.LocalSocket
 import android.net.LocalSocketAddress
 import android.util.Log
-import com.tim.shadowsocksr.BuildConfig
 import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer

@@ -18,3 +18,5 @@ local.properties
 /buildSrc/build/
 /.idea/
 /app/release/
+/build-logic/build/
+/build-logic/plugins/build/

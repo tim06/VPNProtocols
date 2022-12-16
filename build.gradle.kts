@@ -1,33 +1,20 @@
-import io.gitlab.arturbosch.detekt.Detekt
-import io.gitlab.arturbosch.detekt.DetektPlugin
-
 buildscript {
     repositories {
-        gradlePluginPortal()
         google()
         mavenCentral()
     }
-    dependencies {
-        classpath(libs.bundles.plugins)
-    }
 }
 
-subprojects {
-    apply<DetektPlugin>()
-
-    tasks {
-        withType<Detekt> {
-            parallel = true
-            config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
-            buildUponDefaultConfig = false
-        }
-    }
+plugins {
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.publish) apply false
 }
 
 allprojects {
     plugins.withId("com.vanniktech.maven.publish.base") {
         group = "io.github.tim06"
-        version = "1.0.14"
+        version = findProperty("protocols.version") as String
 
         extensions.configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
             publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.S01)
@@ -62,4 +49,3 @@ allprojects {
         }
     }
 }
-
