@@ -27,7 +27,7 @@ fun rememberShadowsocksRController(config: ShadowsocksRVpnConfig): ShadowsocksRC
 }
 
 class ShadowsocksRController(
-    config: ShadowsocksRVpnConfig,
+    private val config: ShadowsocksRVpnConfig,
     private val context: Context
 ) : BaseController {
 
@@ -35,13 +35,13 @@ class ShadowsocksRController(
     override val connectionState: StateFlow<ConnectionState> = mutableStateFlow.asStateFlow()
 
     private val Context.vpnService by shadowsocksR(
-        config = config
-    ) { connectionStatus ->
-        mutableStateFlow.value = connectionStatus
-    }
+        stateListener = { connectionStatus ->
+            mutableStateFlow.value = connectionStatus
+        }
+    )
 
     override fun startVpn() {
-        context.vpnService.start()
+        context.vpnService.start(config)
     }
 
     override fun stopVpn() {

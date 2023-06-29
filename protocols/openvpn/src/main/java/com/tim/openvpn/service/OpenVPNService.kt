@@ -12,7 +12,8 @@ import com.tim.basevpn.state.ConnectionState
 import com.tim.basevpn.utils.CONFIG_EXTRA
 import com.tim.basevpn.utils.addRoutes
 import com.tim.basevpn.utils.sendCallback
-import com.tim.notification.NotificationHelper
+import com.tim.notification.DefaultVpnServiceNotification
+import com.tim.notification.VpnServiceNotification
 import com.tim.openvpn.OpenVPNConfig
 import com.tim.openvpn.VpnStatus
 import com.tim.openvpn.model.TunOptions
@@ -35,10 +36,10 @@ internal class OpenVPNService : VpnService(), Handler.Callback, TunOpener,
 
     // Notification
     private val notificationHelper by lazy {
-        NotificationHelper(
+        DefaultVpnServiceNotification(
             service = this,
             notificationManager = applicationContext.getSystemService(
-                Context.NOTIFICATION_SERVICE
+                NOTIFICATION_SERVICE
             ) as NotificationManager
         )
     }
@@ -86,7 +87,7 @@ internal class OpenVPNService : VpnService(), Handler.Callback, TunOpener,
                 ?.getParcelable(CONFIG_EXTRA, OpenVPNConfig::class.java)
                 ?: return null
         }
-        notificationHelper.startNotification()
+        notificationHelper.start()
         return binder
     }
 

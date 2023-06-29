@@ -1,31 +1,40 @@
 package com.tim.shadowsocksr.service
 
 import android.app.NotificationManager
+import android.app.Service
 import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.IBinder
 import android.os.ParcelFileDescriptor
+import android.os.RemoteException
 import android.util.Log
 import com.tim.basevpn.IConnectionStateListener
 import com.tim.basevpn.IVPNService
 import com.tim.basevpn.R
 import com.tim.basevpn.delegate.StateDelegate
 import com.tim.basevpn.state.ConnectionState
+import com.tim.basevpn.utils.ALLOWED_APPS_SET_EXTRA
 import com.tim.basevpn.utils.CONFIG_EXTRA
+import com.tim.basevpn.utils.NOTIFICATION_IMPL_CLASS_KEY
 import com.tim.basevpn.utils.sendCallback
-import com.tim.notification.NotificationHelper
+import com.tim.notification.DefaultVpnServiceNotification
+import com.tim.notification.VpnServiceNotification
 import com.tim.shadowsocksr.Native
 import com.tim.shadowsocksr.ShadowsocksRVpnConfig
 import com.tim.shadowsocksr.config.ConfigWriter
+import com.tim.shadowsocksr.log.ShadowsocksRLogger
 import com.tim.shadowsocksr.thread.GuardedProcess
 import com.tim.shadowsocksr.thread.ShadowsocksRThread
 import com.tim.shadowsocksr.thread.TrafficMonitorThread
+import com.tim.shadowsocksr.utils.TrafficMonitor
+import java.util.Timer
+import java.util.TimerTask
 
 /**
  * @Author: Timur Hojatov
  */
-internal class ShadowsocksService : VpnService() {
+class ShadowsocksService : VpnService() {
 
     private val dataDir: String by lazy {
         applicationInfo.dataDir
@@ -52,20 +61,16 @@ internal class ShadowsocksService : VpnService() {
     private var pdnsdProcess: GuardedProcess? = null
     private var tun2socksProcess: GuardedProcess? = null
 
+    private var timer: Timer? = null
     private var trafficMonitorThread: TrafficMonitorThread? = null
 
     private var connection: ParcelFileDescriptor? = null
 
     private lateinit var config: ShadowsocksRVpnConfig
 
-    private val notificationHelper by lazy {
-        NotificationHelper(
-            service = this,
-            notificationManager = applicationContext.getSystemService(
-                NOTIFICATION_SERVICE
-            ) as NotificationManager
-        )
-    }
+    private var notificationHelper: VpnServiceNotification? = null
+
+    private var allowedApps: Array<String>? = null
 
     private val binder = object : IVPNService.Stub() {
         override fun startVPN() {
@@ -78,12 +83,44 @@ internal class ShadowsocksService : VpnService() {
 
         override fun registerCallback(cb: IConnectionStateListener?) {
             stateCallback.register(cb)
+            if (cb != null && stateCallback.register(cb)) {
+                if (stateCallback.registeredCallbackCount != 0 && timer == null) {
+                    val task = object : TimerTask() {
+                        override fun run() {
+                            if (TrafficMonitor.updateRate()) {
+                                updateTrafficRate()
+                                notificationHelper?.run {
+                                    val received = TrafficMonitor.formatTraffic(TrafficMonitor.txRate)
+                                    val send = TrafficMonitor.formatTraffic(TrafficMonitor.rxRate)
+                                    val stat = "↓ $received    ↑ $send"
+                                    updateNotification(createNotification(stat))
+                                }
+                            }
+                        }
+                    }
+                    timer = Timer(true)
+                    timer!!.schedule(task, 1000, 1000)
+                }
+                TrafficMonitor.updateRate()
+                try {
+                    cb.trafficUpdate(
+                        TrafficMonitor.txRate,
+                        TrafficMonitor.rxRate,
+                        TrafficMonitor.txTotal,
+                        TrafficMonitor.rxTotal
+                    )
+                } catch (e: RemoteException) {
+                    ShadowsocksRLogger.e("ShadowsocksService", "registerCallback: $e")
+                    //ShadowsocksApplication.app.track(e)
+                }
+            }
         }
 
         override fun unregisterCallback(cb: IConnectionStateListener?) {
             stateCallback.unregister(cb)
         }
     }
+
     @Suppress("DEPRECATION")
     override fun onBind(intent: Intent?): IBinder? {
         config = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU) {
@@ -97,7 +134,10 @@ internal class ShadowsocksService : VpnService() {
                 ?.getParcelable(CONFIG_EXTRA, ShadowsocksRVpnConfig::class.java)
                 ?: return null
         }
-        notificationHelper.startNotification()
+        initNotification(intent.extras?.getString(NOTIFICATION_IMPL_CLASS_KEY)).run {
+            start()
+        }
+        allowedApps = intent.extras?.getStringArray(ALLOWED_APPS_SET_EXTRA)
         return binder
     }
 
@@ -108,8 +148,15 @@ internal class ShadowsocksService : VpnService() {
 
     private fun start() {
         Log.d("ShadowsocksService", "start()")
-        trafficMonitorThread = TrafficMonitorThread(statPath).also { monitor ->
-            monitor.start()
+
+        TrafficMonitor.reset()
+        trafficMonitorThread = TrafficMonitorThread(
+            statPath = statPath,
+            update = { send, received ->
+                //stateCallback.sendCallback { it.trafficUpdate(send, received) }
+            }
+        ).also { monitor ->
+            monitor.startThread()
         }
         updateState(ConnectionState.CONNECTING)
 
@@ -141,12 +188,16 @@ internal class ShadowsocksService : VpnService() {
 
         killProcesses()
 
-        notificationHelper.stopNotification()
+        notificationHelper?.stop()
         connection?.close()
         connection = null
 
+        //updateTrafficTotal(TrafficMonitor.txTotal, TrafficMonitor.rxTotal)
+        TrafficMonitor.reset()
         trafficMonitorThread?.stopThread()
         trafficMonitorThread = null
+        timer?.cancel()
+        timer = null
 
         updateState(ConnectionState.DISCONNECTED)
     }
@@ -167,6 +218,10 @@ internal class ShadowsocksService : VpnService() {
                 }
 
             addRoute(config.dnsAddress.orEmpty(), DNS_PREFIX_LENGTH)
+
+            allowedApps?.forEach {
+                addAllowedApplication(it)
+            }
         }.establish() ?: run {
             Log.e("ShadowsocksService", "No connection")
             return -1
@@ -179,8 +234,10 @@ internal class ShadowsocksService : VpnService() {
                 dataDir = dataDir,
                 nativeDir = nativeDir
             )
-        ).start {
-            sendFileDescriptor(descriptor)
+        ).apply {
+            start {
+                sendFileDescriptor(descriptor)
+            }
         }
         return descriptor
     }
@@ -188,9 +245,11 @@ internal class ShadowsocksService : VpnService() {
     private fun runTunnelProcesses() {
         configWriter.apply {
             printConfigsToFiles(dataDir, protectPath)
-            sslocalProcess = GuardedProcess(buildShadowSocksDaemonCmd(dataDir, nativeDir)).start()
-            pdnsdProcess = GuardedProcess(buildDnsDaemonCmd(dataDir, nativeDir)).start()
-            sstunnelProcess = GuardedProcess(buildDnsTunnelCmd(dataDir, nativeDir)).start()
+            sslocalProcess =
+                GuardedProcess(buildShadowSocksDaemonCmd(dataDir, nativeDir)).apply { start() }
+            pdnsdProcess = GuardedProcess(buildDnsDaemonCmd(dataDir, nativeDir)).apply { start() }
+            sstunnelProcess =
+                GuardedProcess(buildDnsTunnelCmd(dataDir, nativeDir)).apply { start() }
         }
     }
 
@@ -223,13 +282,61 @@ internal class ShadowsocksService : VpnService() {
         pdnsdProcess = null
     }
 
-    internal companion object {
+    private fun initNotification(vpnNotificationClass: String?): VpnServiceNotification {
+        val notificationManager = applicationContext.getSystemService(
+            NOTIFICATION_SERVICE
+        ) as NotificationManager
+        val helper = runCatching {
+            val cl = Class.forName(vpnNotificationClass)
+            cl.getConstructor(
+                Service::class.java,
+                NotificationManager::class.java
+            ).newInstance(this, notificationManager) as VpnServiceNotification
+        }.onFailure {
+            ShadowsocksRLogger.e("ShadowsocksService", it.message.orEmpty())
+        }.getOrDefault(
+            defaultValue = DefaultVpnServiceNotification(
+                service = this,
+                notificationManager = notificationManager
+            )
+        )
+        this.notificationHelper = helper
+        return helper
+    }
+
+    private fun updateTrafficRate() {
+        //handler.post {
+        if (stateCallback.registeredCallbackCount > 0) {
+            val txRate = TrafficMonitor.txRate
+            val rxRate = TrafficMonitor.rxRate
+            val txTotal = TrafficMonitor.txTotal
+            val rxTotal = TrafficMonitor.rxTotal
+            stateCallback.sendCallback {
+                it.trafficUpdate(txRate, rxRate, txTotal, rxTotal)
+            }
+            /*val n = stateCallback.beginBroadcast()
+            for (i in 0 until n) {
+                try {
+
+                    stateCallback.getBroadcastItem(i)
+                        .trafficUpdated(txRate, rxRate, txTotal, rxTotal)
+                } catch (e: Exception) {
+                    // Ignore
+                }
+
+            }
+            callbacks.finishBroadcast()*/
+        }
+        //}
+    }
+
+    companion object {
         private const val CONNECTION_MTU = 1500
         private const val ADDRESS_ROUTE = "172.19.0.1"
         private const val ADDRESS_PREFIX_LENGTH = 24
         private const val DNS_PREFIX_LENGTH = 32
 
-        private const val SEND_FILE_DESCRIPTOR_TRIES = 5
+        private const val SEND_FILE_DESCRIPTOR_TRIES = 3
         private const val SEND_FILE_DESCRIPTOR_SLEEP = 1000L
     }
 }

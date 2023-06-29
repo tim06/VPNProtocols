@@ -43,7 +43,9 @@ class OpenVPNController(
 
     override fun startVpn() {
         mutableStateFlow.value = ConnectionState.CONNECTING
-        context.vpnService.start()
+        context.vpnService.start(
+            config = OpenVPNConfig()
+        )
     }
 
     override fun stopVpn() {

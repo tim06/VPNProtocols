@@ -18,13 +18,16 @@ import com.tim.vpnprotocols.databinding.ShadowsocksFragmentLayoutBinding
  */
 class ShadowsocksrFragment : Fragment(R.layout.shadowsocks_fragment_layout) {
 
-    private val layoutBinding: ShadowsocksFragmentLayoutBinding by viewBinding()
-
     private val Context.vpnService by shadowsocksR(
-        config = ShadowsocksRVpnConfig()
-    ) { connectionStatus ->
-        updateState(connectionStatus)
-    }
+        stateListener = { connectionStatus ->
+            updateState(connectionStatus)
+        },
+        trafficListener = { txTotal, rxTotal, txRate, rxRate ->
+
+        }
+    )
+
+    private val layoutBinding: ShadowsocksFragmentLayoutBinding by viewBinding()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -39,11 +42,16 @@ class ShadowsocksrFragment : Fragment(R.layout.shadowsocks_fragment_layout) {
     }
 
     private fun startVpn() {
-        requireContext().vpnService.start()
+        requireContext().applicationContext.vpnService.start(
+            config = ShadowsocksRVpnConfig(
+                host = "212.113.122.223",
+                password = "12345678"
+            )
+        )
     }
 
     private fun stopVpn() {
-        requireContext().vpnService.stop()
+        requireContext().applicationContext.vpnService.stop()
     }
 
     private fun updateState(state: ConnectionState) {

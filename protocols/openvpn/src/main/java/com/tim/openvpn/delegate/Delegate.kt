@@ -12,7 +12,7 @@ fun openVPN(
     config: OpenVPNConfig,
     stateListener: (ConnectionState) -> Unit
 ): ReadOnlyProperty<Context, VPNRunner> = VpnConnectionServiceDelegate(
-    config = config,
+    //config = config,
     clazz = OpenVPNService::class.java,
     stateListener = stateListener
 )

@@ -9,4 +9,7 @@ android {
 dependencies {
     api(libs.tim.base)
     api(libs.tim.notification)
+    implementation(libs.kotlin.coroutines.core)
+
+    testImplementation(libs.test.kotlinx.coroutines)
 }

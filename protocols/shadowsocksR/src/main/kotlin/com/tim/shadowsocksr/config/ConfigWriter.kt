@@ -56,7 +56,8 @@ internal class ConfigWriter(
     ) = listOf(
         "$nativeDir/$PDNSD_FILE_NAME",
         "-c",
-        "$dataDir/$PDNSD_CONFIG_FILE_NAME"
+        "$dataDir/$PDNSD_CONFIG_FILE_NAME",
+        "-v5"
     )
 
     internal fun buildDnsTunnelCmd(
@@ -96,8 +97,10 @@ internal class ConfigWriter(
         "1500",
         "--sock-path",
         "$dataDir/sock_path",
+        /*"--logger",
+        "syslog",*/
         "--loglevel",
-        "3",
+        "5",
         "--dnsgw",
         "172.19.0.1:${localPort + TUN2SOCKS_PLUS_PORT}"
     )
@@ -160,7 +163,7 @@ internal class ConfigWriter(
             "}"
 
 
-    companion object {
+    private companion object {
         private const val SS_LOCAL_FILE_NAME = "libssr-local.so"
         private const val SS_LOCAL_CONFIG_FILE_NAME = "libssr-local.so-vpn.conf"
 

@@ -1,74 +1,93 @@
 package com.tim.shadowsocksr.thread
 
-import android.util.Log
+import com.tim.shadowsocksr.log.ShadowsocksRLogger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
+import kotlin.coroutines.CoroutineContext
+import kotlin.system.measureTimeMillis
 
-/**
- * [Process] runner
- *
- * @param cmd commands for create [Process]
- *
- * @Author: Timur Hojatov
- */
-internal class GuardedProcess(private val cmd: List<String?>) {
+internal class GuardedProcess(private val cmd: List<String?>) : CoroutineScope {
 
-    private var thread: Thread? = null
+    private var processJob: Job? = null
+    private var streamLoggerJob: Job? = null
     private var process: Process? = null
-    private var isDestroyed: Boolean = false
-    private var streamLoggerThread: StreamLoggerThread? = null
 
-    fun start(onRestartCallback: (() -> Boolean)? = null): GuardedProcess {
-        thread = Thread(
-            {
-                runCatching {
-                    while (isDestroyed.not()) {
-                        Log.d("GuardedProcess","start process: $cmd")
+    override val coroutineContext: CoroutineContext
+        get() = SupervisorJob() + Dispatchers.IO
 
-                        val startTime = System.currentTimeMillis()
+    /**
+     * Запускает процесс и отслеживает его работу.
+     *
+     * @param onRestartCallback колбэк, вызываемый при перезапуске процесса.
+     */
+    fun start(onRestartCallback: (() -> Boolean)? = null) {
+        processJob = launch {
+            try {
+                //while (isActive) {
+                    ShadowsocksRLogger.d("GuardedProcess", "Start process: $cmd")
 
+                    val executionTime = measureTimeMillis {
+                        // Запускаем процесс с помощью ProcessBuilder
                         process = ProcessBuilder(cmd)
                             .redirectErrorStream(true)
                             .start()
-                            .also {
-                                streamLoggerThread = StreamLoggerThread(it.inputStream)
-                                    .also { logger ->
-                                        logger.start()
+
+                        withContext(SupervisorJob() + Dispatchers.IO) {
+                            // Запускаем отдельную корутину для чтения вывода процесса
+                            streamLoggerJob = launch {
+                                runCatching {
+                                    process?.inputStream?.bufferedReader()?.use { reader ->
+                                        reader.lineSequence().forEach { line ->
+                                            ShadowsocksRLogger.d("StreamLogger", "Message: $line")
+                                        }
                                     }
-                            }
-
-                        onRestartCallback?.invoke()
-
-                        process?.waitFor()
-
-                        synchronized(this) {
-                            if (System.currentTimeMillis() - startTime < START_TIME_TIMER_DELAY) {
-                                Log.w("GuardedProcess", "process exit too fast, stop guard: $cmd")
-                                isDestroyed = true
+                                }.onFailure { e ->
+                                    ShadowsocksRLogger.e("GuardedProcess", "Error reading input stream: ${e.message}")
+                                    // Добавьте здесь дополнительную обработку ошибки, если нужно
+                                }
                             }
                         }
+
+                        process?.waitFor()
+                        onRestartCallback?.invoke()
                     }
-                }.onFailure {
-                    Log.e("GuardedProcess", "thread interrupt, destroy process: $cmd")
-                    process?.destroy()
-                }
-            },
-            "GuardThread-$cmd"
-        )
 
-        thread?.start()
-        return this
-    }
-
-    fun destroy() {
-        isDestroyed = true
-        thread?.interrupt()
-        streamLoggerThread?.interrupt()
-        process?.destroy()
-        runCatching {
-            thread?.join()
+                    // Проверяем, завершился ли процесс слишком быстро
+                    if (executionTime < START_TIME_TIMER_DELAY) {
+                        ShadowsocksRLogger.d("GuardedProcess", "Process exit too fast, stopping guard: $cmd")
+                        coroutineContext.cancelChildren() // Отменяем все потоки в контексте
+                    }
+                //}
+            } catch (e: Exception) {
+                ShadowsocksRLogger.e("GuardedProcess", "An error occurred: ${e.message}")
+                // Обработка ошибок
+            }
         }
     }
 
+    /**
+     * Останавливает процесс и освобождает ресурсы.
+     */
+    fun destroy() {
+        coroutineContext.cancelChildren() // Отменяем все потоки в контексте
+        process?.destroy() // Уничтожаем процесс
+        processJob = null
+        process = null
+    }
+
+    @TestOnly
+    fun getProcess(): Process? {
+        return process
+    }
+
     internal companion object {
-        private const val START_TIME_TIMER_DELAY = 1000
+        private const val START_TIME_TIMER_DELAY = 1000L
     }
 }

@@ -1,36 +1,36 @@
 package com.tim.basevpn.delegate
 
-import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.net.VpnService
+import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.Parcelable
 import com.tim.basevpn.IConnectionStateListener
 import com.tim.basevpn.IVPNService
-import com.tim.basevpn.permission.isVpnPermissionGranted
 import com.tim.basevpn.state.ConnectionState
+import com.tim.basevpn.utils.ALLOWED_APPS_SET_EXTRA
 import com.tim.basevpn.utils.CONFIG_EXTRA
+import com.tim.basevpn.utils.NOTIFICATION_IMPL_CLASS_KEY
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 /**
  * ServiceConnection delegate
  *
- * @param config User configuration
  * @param clazz Class of VpnService
  * @param stateListener Receive state of connection
  *
  * @Author: Timur Hojatov
  */
-class VpnConnectionServiceDelegate<T : Parcelable>(
-    private val config: T,
+class VpnConnectionServiceDelegate(
     private val clazz: Class<out VpnService>,
-    private val stateListener: ((ConnectionState) -> Unit)
+    private val stateListener: ((ConnectionState) -> Unit),
+    private val trafficListener: ((Long, Long, Long, Long) -> Unit)? = null
 ) : ReadOnlyProperty<Context, VPNRunner> {
 
     private var isBound = false
@@ -41,6 +41,10 @@ class VpnConnectionServiceDelegate<T : Parcelable>(
                     stateListener.invoke(state)
                 }
             }
+        }
+
+        override fun trafficUpdate(txRate: Long, rxRate: Long, txTotal: Long, rxTotal: Long) {
+            trafficListener?.invoke(txRate, rxRate, txTotal, rxTotal)
         }
     }
 
@@ -60,19 +64,14 @@ class VpnConnectionServiceDelegate<T : Parcelable>(
 
     override fun getValue(thisRef: Context, property: KProperty<*>): VPNRunner {
         return object : VPNRunner {
-            override fun start() {
-                if (thisRef.isVpnPermissionGranted()) {
-                    stateListener.invoke(ConnectionState.CONNECTING)
-                    thisRef.bind()
-                } else {
-                    when (thisRef) {
-                        is Activity -> {
-                            thisRef.startActivityForResult(Intent(VpnService.prepare(thisRef)), 0)
-                        }
-                        else -> throw IllegalArgumentException("Not implemented type of context: $thisRef")
-                    }
-                    stateListener.invoke(ConnectionState.PERMISSION_NOT_GRANTED)
-                }
+
+            override fun <T : Parcelable> start(
+                config: T,
+                notificationClassName: String?,
+                allowedApps: Set<String>
+            ) {
+                stateListener.invoke(ConnectionState.CONNECTING)
+                thisRef.bind(config, notificationClassName, allowedApps)
             }
 
             override fun stop() {
@@ -82,9 +81,13 @@ class VpnConnectionServiceDelegate<T : Parcelable>(
         }
     }
 
-    private fun Context.bind() {
+    private fun <T: Parcelable> Context.bind(
+        config: T,
+        notificationClassName: String? = null,
+        allowedApps: Set<String>
+    ) {
         isBound = bindService(
-            createIntent(config),
+            createIntent(config, notificationClassName, allowedApps),
             serviceConnection,
             Context.BIND_AUTO_CREATE
         )
@@ -98,8 +101,16 @@ class VpnConnectionServiceDelegate<T : Parcelable>(
         }
     }
 
-    private fun Context.createIntent(config: T) = Intent(
+    private fun <T: Parcelable> Context.createIntent(
+        config: T,
+        notificationClassName: String? = null,
+        allowedApps: Set<String>
+    ) = Intent(
         this,
         clazz
-    ).putExtra(CONFIG_EXTRA, config)
+    ).apply {
+        putExtra(CONFIG_EXTRA, config)
+        putExtra(NOTIFICATION_IMPL_CLASS_KEY, notificationClassName)
+        putExtra(ALLOWED_APPS_SET_EXTRA, allowedApps.toTypedArray())
+    }
 }

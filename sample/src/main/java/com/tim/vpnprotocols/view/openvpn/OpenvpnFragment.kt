@@ -31,7 +31,7 @@ class OpenvpnFragment : Fragment(R.layout.openvpn_fragment_layout) {
         super.onViewCreated(view, savedInstanceState)
         layoutBinding.apply {
             startButton.setOnClickListener {
-                requireContext().vpnService.start()
+                requireContext().vpnService.start(OpenVPNConfig())
             }
             stopButton.setOnClickListener {
                 requireContext().vpnService.stop()

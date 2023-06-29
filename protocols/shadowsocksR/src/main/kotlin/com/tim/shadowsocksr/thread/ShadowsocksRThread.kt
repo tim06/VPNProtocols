@@ -6,12 +6,14 @@ import android.net.LocalSocket
 import android.net.LocalSocketAddress
 import android.util.Log
 import com.tim.shadowsocksr.Native
+import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
+import kotlin.coroutines.CoroutineContext
 
 /**
- * [Thread] for keep ShadowsocksR connection
+ * [CoroutineScope] for keeping ShadowsocksR connection
  *
  * @param protectPath cache path for accept socket
  * @param protectFileDescriptor call [android.net.VpnService.protect]
@@ -21,59 +23,65 @@ import java.io.IOException
 internal class ShadowsocksRThread(
     private val protectPath: String,
     private val protectFileDescriptor: (Int) -> Boolean
-) : Thread() {
+) : CoroutineScope {
 
     private var isRunning = true
     private var serverSocket: LocalServerSocket? = null
 
-    override fun run() {
-        // clear
-        File(protectPath).delete()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.IO + SupervisorJob()
 
-        // bind socket
-        if (!initServerSocket()) {
-            return
-        }
+    fun start() {
+        launch {
+            try {
+                // clear
+                File(protectPath).delete()
 
-        while (isRunning) {
-            runCatching {
-                val servSocket = serverSocket?.accept()
+                // bind socket
+                if (!initServerSocket()) {
+                    return@launch
+                }
 
-                runCatching {
-                    val input = servSocket?.inputStream
-                    val output = servSocket?.outputStream
+                while (isRunning) {
+                    try {
+                        val servSocket = serverSocket?.accept()
 
-                    input?.read()
+                        try {
+                            val input = servSocket?.inputStream
+                            val output = servSocket?.outputStream
 
-                    servSocket?.ancillaryFileDescriptors
-                        ?.firstOrNull()
-                        ?.let { descriptor ->
-                            val fd = getInt.invoke(descriptor) as Int
-                            val isSuccess = protectFileDescriptor.invoke(
-                                fd
-                            )
-                            Native.jniclose(fd)
+                            input?.read()
 
-                            output?.write(if (isSuccess) 0 else 1)
+                            servSocket?.ancillaryFileDescriptors
+                                ?.firstOrNull()
+                                ?.let { descriptor ->
+                                    val fd = getInt.invoke(descriptor) as Int
+                                    val isSuccess = protectFileDescriptor.invoke(fd)
+                                    Native.jniclose(fd)
+
+                                    output?.write(if (isSuccess) 0 else 1)
+                                }
+
+                            input?.close()
+                            output?.close()
+                        } catch (error: Throwable) {
+                            Log.e("ShadowsocksRThread", "Error during I/O operations: $error")
+                        } finally {
+                            servSocket?.close()
                         }
-
-                    input?.close()
-                    output?.close()
-                }.onFailure { error ->
-                    Log.e("ShadowsocksRThread", "Error when protect socket: $error")
+                    } catch (e: IOException) {
+                        Log.e("ShadowsocksRThread", "Error when accept socket")
+                        initServerSocket()
+                    }
                 }
-                runCatching {
-                    servSocket?.close()
-                }
-            }.onFailure {
-                Log.e("ShadowsocksRThread", "Error when accept socket")
-                initServerSocket()
+            } catch (e: IOException) {
+                Log.e("ShadowsocksRThread", "Error during server socket initialization: $e")
             }
         }
     }
 
     /**
-     * init server socket
+     * Initialize server socket
      *
      * @return init failed return false.
      */
@@ -101,10 +109,8 @@ internal class ShadowsocksRThread(
 
     fun stopThread() {
         isRunning = false
-        runCatching {
-            serverSocket?.close()
-        }
-        serverSocket = null
+        serverSocket?.close()
+        cancel()
     }
 
     internal companion object {

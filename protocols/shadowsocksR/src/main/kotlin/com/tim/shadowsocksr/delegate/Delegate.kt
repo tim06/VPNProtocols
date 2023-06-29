@@ -18,10 +18,10 @@ import kotlin.properties.ReadOnlyProperty
  * @Author: Timur Hojatov
  */
 fun shadowsocksR(
-    config: ShadowsocksRVpnConfig,
-    stateListener: ((ConnectionState) -> Unit)
+    stateListener: ((ConnectionState) -> Unit),
+    trafficListener: ((Long, Long, Long, Long) -> Unit)? = null
 ): ReadOnlyProperty<Context, VPNRunner> = VpnConnectionServiceDelegate(
-    config = config,
     clazz = ShadowsocksService::class.java,
-    stateListener = stateListener
+    stateListener = stateListener,
+    trafficListener = trafficListener
 )

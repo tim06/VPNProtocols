@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".VPNApplication"
@@ -18,7 +20,7 @@
         android:theme="@style/Theme.VPNProtocols"
         tools:targetApi="31">
         <activity
-            android:name=".compose.MainComposeActivity"
+            android:name=".view.MainViewActivity"
             android:exported="true"
             android:theme="@style/Theme.VPNProtocols"
             android:windowSoftInputMode="adjustResize">
@@ -28,9 +30,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
+        <!--<activity
             android:name=".view.MainViewActivity"
-            android:exported="false" />
+            android:exported="false" />-->
     </application>
 
 </manifest>

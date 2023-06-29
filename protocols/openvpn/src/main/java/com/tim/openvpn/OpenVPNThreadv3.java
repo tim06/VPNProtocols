@@ -1,0 +1,338 @@
+package com.tim.openvpn;
+
+import android.content.Context;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.text.TextUtils;
+
+import com.tim.openvpn.model.CIDRIP;
+import com.tim.openvpn.service.OpenVPNService;
+
+import net.openvpn.ovpn3.ClientAPI_Config;
+import net.openvpn.ovpn3.ClientAPI_EvalConfig;
+import net.openvpn.ovpn3.ClientAPI_Event;
+import net.openvpn.ovpn3.ClientAPI_ExternalPKICertRequest;
+import net.openvpn.ovpn3.ClientAPI_ExternalPKISignRequest;
+import net.openvpn.ovpn3.ClientAPI_LogInfo;
+import net.openvpn.ovpn3.ClientAPI_OpenVPNClient;
+import net.openvpn.ovpn3.ClientAPI_OpenVPNClientHelper;
+import net.openvpn.ovpn3.ClientAPI_ProvideCreds;
+import net.openvpn.ovpn3.ClientAPI_Status;
+import net.openvpn.ovpn3.ClientAPI_StringVec;
+import net.openvpn.ovpn3.ClientAPI_TransportStats;
+
+import java.util.Locale;
+
+/*
+public class OpenVPNThreadv3 extends ClientAPI_OpenVPNClient implements Runnable, OpenVPNManagement {
+    final static long EmulateExcludeRoutes = (1 << 16);
+
+    static {
+        System.loadLibrary("ovpn3");
+    }
+
+    private final String configuration;
+    private final OpenVPNService mService;
+    */
+/* The methods in OpenVPN3 can take a long time, so we do async messages to handle them
+     * to avoid ANR on the service main thread *//*
+
+    private final Handler mHandler;
+
+    public OpenVPNThreadv3(OpenVPNService openVpnService, String configuration) {
+        this.configuration = configuration;
+        mService = openVpnService;
+        HandlerThread mHandlerThread = new HandlerThread("OpenVPN3Thread");
+        mHandlerThread.start();
+        mHandler = new Handler(mHandlerThread.getLooper());
+    }
+
+    @Override
+    public void run() {
+        if (!setConfig(configuration))
+            return;
+
+        //VpnStatus.logInfo(ClientAPI_OpenVPNClientHelper.platform());
+        //VpnStatus.logInfo(ClientAPI_OpenVPNClientHelper.copyright());
+
+        //mHandler.postDelayed(this::pollStatus, OpenVPNManagement.mBytecountInterval * 1000);
+
+        ClientAPI_Status status = connect();
+        if (status.getError()) {
+            VpnStatus.logError(String.format("connect() error: %s: %s", status.getStatus(), status.getMessage()));
+            VpnStatus.addExtraHints(status.getMessage());
+        }
+        VpnStatus.updateStateString("NOPROCESS", "OpenVPN3 thread finished", R.string.state_noprocess, ConnectionStatus.LEVEL_NOTCONNECTED);
+        mHandler.removeCallbacks(this::pollStatus);
+    }
+
+    @Override
+    public boolean tun_builder_set_remote_address(String address, boolean ipv6) {
+        mService.setMtu(1500);
+        return true;
+    }
+
+    @Override
+    public boolean tun_builder_set_mtu(int mtu) {
+        mService.setMtu(mtu);
+        return true;
+    }
+
+    @Override
+    public boolean tun_builder_add_dns_server(String address, boolean ipv6) {
+        mService.addDNS(address);
+        return true;
+    }
+
+    @Override
+    public boolean tun_builder_add_route(String address, int prefix_length, int metric, boolean ipv6) {
+        if (address.equals("remote_host"))
+            return false;
+
+        if (ipv6)
+            mService.addRoutev6(address + "/" + prefix_length, "tun");
+        else
+            mService.addRoute(new CIDRIP(address, prefix_length), true);
+        return true;
+    }
+
+    @Override
+    public boolean tun_builder_exclude_route(String address, int prefix_length, int metric, boolean ipv6) {
+        if (ipv6)
+            mService.addRoutev6(address + "/" + prefix_length, "wifi0");
+        else {
+            CIDRIP route = new CIDRIP(address, prefix_length);
+            mService.addRoute(route, false);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean tun_builder_add_search_domain(String domain) {
+        mService.setDomain(domain);
+        return true;
+    }
+
+    @Override
+    public boolean tun_builder_set_proxy_http(String host, int port)
+    {
+        //return mService.addHttpProxy(host, port);
+        return false;
+    }
+
+    @Override
+    public boolean tun_builder_set_proxy_https(String host, int port)
+    {
+        return false;
+    }
+
+    @Override
+    public int tun_builder_establish() {
+        return mService.openTun().detachFd();
+    }
+
+    @Override
+    public boolean tun_builder_set_session_name(String name) {
+        VpnStatus.logDebug("We should call this session" + name);
+        return true;
+    }
+
+    @Override
+    public boolean tun_builder_add_address(String address, int prefix_length, String gateway, boolean ipv6, boolean net30) {
+        if (!ipv6)
+            mService.setLocalIP(new CIDRIP(address, prefix_length));
+        else
+            mService.setLocalIPv6(address + "/" + prefix_length);
+        return true;
+    }
+
+    @Override
+    public boolean tun_builder_new() {
+
+        return true;
+    }
+
+    @Override
+    public boolean tun_builder_set_layer(int layer) {
+        return layer == 3;
+    }
+
+    @Override
+    public boolean tun_builder_reroute_gw(boolean ipv4, boolean ipv6, long flags) {
+        if ((flags & EmulateExcludeRoutes) != 0)
+            return true;
+        if (ipv4)
+            mService.addRoute("0.0.0.0", "0.0.0.0", "127.0.0.1", OpenVPNService.VPNSERVICE_TUN);
+
+        if (ipv6)
+            mService.addRoutev6("::/0", OpenVPNService.VPNSERVICE_TUN);
+
+        return true;
+    }
+
+    private boolean setConfig(String vpnconfig) {
+
+        ClientAPI_Config config = new ClientAPI_Config();
+
+        config.setContent(vpnconfig);
+        config.setTunPersist(true);
+        //config.setGuiVersion(VpnProfile.getVersionEnvString(mService));
+        //config.setSsoMethods("openurl,webauth,crtext");
+        //config.setPlatformVersion(mVp.getPlatformVersionEnvString());
+        config.setExternalPkiAlias("extpki");
+        config.setCompressionMode("asym");
+
+
+        config.setHwAddrOverride(NetworkUtils.getFakeMacAddrFromSAAID(mService));
+        config.setInfo(true);
+        config.setAllowLocalLanAccess(true);
+        config.setRetryOnAuthFailed(false);
+        config.setEnableLegacyAlgorithms(false);
+        */
+/* We want the same app internal route emulation for OpenVPN 2 and OpenVPN 3 *//*
+
+        config.setEnableRouteEmulation(false);
+
+        ClientAPI_EvalConfig ec = eval_config(config);
+        if (ec.getExternalPki()) {
+            VpnStatus.logDebug("OpenVPN3 core assumes an external PKI config");
+        }
+        if (ec.getError()) {
+            VpnStatus.logError("OpenVPN config file parse error: " + ec.getMessage());
+            return false;
+        } else {
+            config.setContent(vpnconfig);
+            return true;
+        }
+    }
+
+    @Override
+    public void external_pki_cert_request(ClientAPI_ExternalPKICertRequest certreq) {
+
+    }
+
+    @Override
+    public void external_pki_sign_request(ClientAPI_ExternalPKISignRequest signreq) {
+
+    }
+
+    @Override
+    public boolean socket_protect(int socket, String remote, boolean ipv6) {
+        return mService.protect(socket);
+
+    }
+
+    */
+/*@Override
+    public boolean stopVPN(boolean replaceConnection) {
+        mHandler.post(this::stop);
+        return false;
+    }*//*
+
+
+    */
+/*@Override
+    public void networkChange(boolean sameNetwork) {
+        mHandler.post(() -> { reconnect(1);});
+    }
+
+    @Override
+    public void setPauseCallback(PausedStateCallback callback) {
+    }
+
+
+    @Override
+    public void sendCRResponse(String response) {
+        mHandler.post(() -> {
+            post_cc_msg("CR_RESPONSE," + response + "\n");
+        });
+    }*//*
+
+
+    @Override
+    public void log(ClientAPI_LogInfo arg0) {
+        String logmsg = arg0.getText();
+        while (logmsg.endsWith("\n"))
+            logmsg = logmsg.substring(0, logmsg.length() - 1);
+
+        VpnStatus.logInfo(logmsg);
+        VpnStatus.addExtraHints(logmsg);
+    }
+
+    @Override
+    public void event(ClientAPI_Event event) {
+        String name = event.getName();
+        String info = event.getInfo();
+        if (name.equals("INFO")) {
+            if (info.startsWith("OPEN_URL:") || info.startsWith("CR_TEXT:")
+                || info.startsWith("WEB_AUTH:")) {
+                mService.trigger_sso(info);
+            } else {
+                VpnStatus.logInfo(R.string.info_from_server, info);
+            }
+        } else if (name.equals("COMPRESSION_ENABLED") || name.equals(("WARN"))) {
+            VpnStatus.logInfo(String.format(Locale.US, "%s: %s", name, info));
+        } else {
+            VpnStatus.updateStateString(name, info);
+        }
+		*/
+/* if (event.name.equals("DYNAMIC_CHALLENGE")) {
+			ClientAPI_DynamicChallenge challenge = new ClientAPI_DynamicChallenge();
+			final boolean status = ClientAPI_OpenVPNClient.parse_dynamic_challenge(event.info, challenge);
+
+		} else *//*
+
+        if (event.getError())
+            VpnStatus.logError(String.format("EVENT(Error): %s: %s", name, info));
+    }
+
+    @Override
+    public ClientAPI_StringVec tun_builder_get_local_networks(boolean ipv6) {
+
+        ClientAPI_StringVec nets = new ClientAPI_StringVec();
+        for (String net : NetworkUtils.getLocalNetworks(mService, ipv6))
+            nets.add(net);
+        return nets;
+    }
+
+    @Override
+    public boolean pause_on_connection_timeout() {
+        VpnStatus.logInfo("pause on connection timeout?! ");
+        return true;
+    }
+
+
+    // When a connection is close to timeout, the core will call this
+    // method.  If it returns false, the core will disconnect with a
+    // CONNECTION_TIMEOUT event.  If true, the core will enter a PAUSE
+    // state.
+
+    @Override
+    public void stop() {
+        super.stop();
+        mService.openvpnStopped();
+    }
+
+    */
+/*@Override
+    public void reconnect() {
+        mHandler.post(() -> {
+            reconnect(1);
+        });
+    }
+
+    @Override
+    public void pause(pauseReason reason) {
+        mHandler.post(() -> {
+            super.pause(reason.toString());
+        });
+    }*//*
+
+
+    private void pollStatus() {
+        ClientAPI_TransportStats t = transport_stats();
+        long in = t.getBytesIn();
+        long out = t.getBytesOut();
+        VpnStatus.updateByteCount(in, out);
+    }
+}*/
