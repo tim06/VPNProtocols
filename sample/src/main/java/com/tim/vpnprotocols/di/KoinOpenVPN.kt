@@ -1,6 +1,6 @@
 package com.tim.vpnprotocols.di
 
-import com.tim.openvpn.OpenVPNConfig
+import com.tim.openvpn.configuration.OpenVPNConfig
 import com.tim.vpnprotocols.compose.edit.ConfigEditViewModel
 import com.tim.vpnprotocols.compose.edit.row.ConfigRows
 import com.tim.vpnprotocols.compose.edit.row.OpenVPNRowsImpl

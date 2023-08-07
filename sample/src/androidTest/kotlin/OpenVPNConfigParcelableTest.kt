@@ -1,5 +1,5 @@
 import android.os.Parcel
-import com.tim.openvpn.OpenVPNConfig
+import com.tim.openvpn.configuration.OpenVPNConfig
 import kotlinx.parcelize.parcelableCreator
 import org.junit.Test
 

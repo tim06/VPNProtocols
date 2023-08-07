@@ -4,7 +4,6 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.net.VpnService
-import android.os.Build
 import android.os.IBinder
 import android.os.ParcelFileDescriptor
 import android.os.RemoteException
@@ -12,11 +11,9 @@ import android.util.Log
 import com.tim.basevpn.IConnectionStateListener
 import com.tim.basevpn.IVPNService
 import com.tim.basevpn.R
+import com.tim.basevpn.configuration.VpnConfiguration
 import com.tim.basevpn.delegate.StateDelegate
 import com.tim.basevpn.state.ConnectionState
-import com.tim.basevpn.utils.ALLOWED_APPS_SET_EXTRA
-import com.tim.basevpn.utils.CONFIG_EXTRA
-import com.tim.basevpn.utils.NOTIFICATION_IMPL_CLASS_KEY
 import com.tim.basevpn.utils.sendCallback
 import com.tim.notification.DefaultVpnServiceNotification
 import com.tim.notification.VpnServiceNotification
@@ -49,11 +46,10 @@ class ShadowsocksService : VpnService() {
         "${applicationInfo.dataDir}/stat_path"
     }
 
-    private val configWriter: ConfigWriter by lazy {
-        ConfigWriter(config)
-    }
+    private var configWriter: ConfigWriter? = null
 
     private val stateCallback by StateDelegate()
+    private var stateCached: ConnectionState = ConnectionState.DISCONNECTED
 
     private var shadowsocksRThread: ShadowsocksRThread? = null
     private var sslocalProcess: GuardedProcess? = null
@@ -73,13 +69,23 @@ class ShadowsocksService : VpnService() {
     private var allowedApps: Array<String>? = null
 
     private val binder = object : IVPNService.Stub() {
-        override fun startVPN() {
+
+        override fun startVPN(configuration: VpnConfiguration<*>) {
+            config = configuration.data as ShadowsocksRVpnConfig
+            configuration.notificationClassName?.let { notificationClass ->
+                initNotification(notificationClass).run {
+                    start()
+                }
+            }
+            allowedApps = configuration.allowedApps.toTypedArray()
             start()
         }
 
         override fun stopVPN() {
             stop()
         }
+
+        override fun getState(): ConnectionState = stateCached
 
         override fun registerCallback(cb: IConnectionStateListener?) {
             stateCallback.register(cb)
@@ -123,7 +129,7 @@ class ShadowsocksService : VpnService() {
 
     @Suppress("DEPRECATION")
     override fun onBind(intent: Intent?): IBinder? {
-        config = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU) {
+        /*config = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU) {
             intent
                 ?.extras
                 ?.getParcelable(CONFIG_EXTRA)
@@ -133,11 +139,7 @@ class ShadowsocksService : VpnService() {
                 ?.extras
                 ?.getParcelable(CONFIG_EXTRA, ShadowsocksRVpnConfig::class.java)
                 ?: return null
-        }
-        initNotification(intent.extras?.getString(NOTIFICATION_IMPL_CLASS_KEY)).run {
-            start()
-        }
-        allowedApps = intent.extras?.getStringArray(ALLOWED_APPS_SET_EXTRA)
+        }*/
         return binder
     }
 
@@ -148,6 +150,8 @@ class ShadowsocksService : VpnService() {
 
     private fun start() {
         Log.d("ShadowsocksService", "start()")
+
+        configWriter = ConfigWriter(config)
 
         TrafficMonitor.reset()
         trafficMonitorThread = TrafficMonitorThread(
@@ -228,13 +232,12 @@ class ShadowsocksService : VpnService() {
         }
 
         val descriptor = connection!!.fd
-        tun2socksProcess = GuardedProcess(
-            configWriter.buildTun2SocksCmd(
-                fd = descriptor.toString(),
-                dataDir = dataDir,
-                nativeDir = nativeDir
-            )
-        ).apply {
+        val command = configWriter?.buildTun2SocksCmd(
+            fd = descriptor.toString(),
+            dataDir = dataDir,
+            nativeDir = nativeDir
+        ) ?: emptyList()
+        tun2socksProcess = GuardedProcess(command).apply {
             start {
                 sendFileDescriptor(descriptor)
             }
@@ -243,7 +246,7 @@ class ShadowsocksService : VpnService() {
     }
 
     private fun runTunnelProcesses() {
-        configWriter.apply {
+        configWriter?.apply {
             printConfigsToFiles(dataDir, protectPath)
             sslocalProcess =
                 GuardedProcess(buildShadowSocksDaemonCmd(dataDir, nativeDir)).apply { start() }
@@ -254,6 +257,7 @@ class ShadowsocksService : VpnService() {
     }
 
     private fun updateState(newState: ConnectionState) {
+        stateCached = newState
         stateCallback.sendCallback { it.stateChanged(newState) }
     }
 

@@ -1,6 +1,6 @@
 package com.tim.openvpn.thread
 
-import com.tim.openvpn.OpenVPNConfig
+import com.tim.openvpn.configuration.OpenVPNConfig
 import com.tim.openvpn.VpnStatus
 import java.io.OutputStreamWriter
 
@@ -48,7 +48,7 @@ internal class OpenVPNThread(
         runCatching {
             process = pb.start().apply {
                 OutputStreamWriter(outputStream).use { outputStream ->
-                    outputStream.write(config.buildConfig(socketCacheDir))
+                    outputStream.write(config.buildConfig())
                     outputStream.flush()
                 }
             }

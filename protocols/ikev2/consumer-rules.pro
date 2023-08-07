@@ -1,0 +1,2 @@
+-keep class org.strongswan.** { *; }
+-keep class com.tim.ikev2.** { *; }

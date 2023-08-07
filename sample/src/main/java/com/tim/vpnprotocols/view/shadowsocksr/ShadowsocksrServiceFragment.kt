@@ -22,8 +22,8 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.snackbar.Snackbar
 import com.tim.basevpn.IConnectionStateListener
 import com.tim.basevpn.IVPNService
+import com.tim.basevpn.configuration.VpnConfiguration
 import com.tim.basevpn.state.ConnectionState
-import com.tim.basevpn.utils.CONFIG_EXTRA
 import com.tim.basevpn.utils.NOTIFICATION_IMPL_CLASS_KEY
 import com.tim.shadowsocksr.ShadowsocksRVpnConfig
 import com.tim.shadowsocksr.log.ShadowsocksRLogger
@@ -49,9 +49,6 @@ class ShadowsocksrServiceFragment : Fragment(R.layout.shadowsocks_fragment_layou
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // Permission is granted. Continue the action or workflow in your
-            // app.
-            //sendNotification(this)
             vpnPermission.launch(Unit)
         } else {
             Snackbar.make(
@@ -98,7 +95,15 @@ class ShadowsocksrServiceFragment : Fragment(R.layout.shadowsocks_fragment_layou
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
             vpnService = IVPNService.Stub.asInterface(p1)
             vpnService?.registerCallback(listener)
-            vpnService?.startVPN()
+            vpnService?.startVPN(
+                VpnConfiguration(
+                    ShadowsocksRVpnConfig(
+                        host = "212.113.122.223",
+                        password = "12345678"
+                    ),
+                    emptySet()
+                )
+            )
         }
 
         override fun onServiceDisconnected(p0: ComponentName?) {
@@ -130,13 +135,6 @@ class ShadowsocksrServiceFragment : Fragment(R.layout.shadowsocks_fragment_layou
             requireContext(),
             ShadowsocksService::class.java
         ).apply {
-            putExtra(
-                CONFIG_EXTRA,
-                ShadowsocksRVpnConfig(
-                    host = "212.113.122.223",
-                    password = "12345678"
-                )
-            )
             putExtra(
                 NOTIFICATION_IMPL_CLASS_KEY,
                 VpnNotificationImpl::class.java.name

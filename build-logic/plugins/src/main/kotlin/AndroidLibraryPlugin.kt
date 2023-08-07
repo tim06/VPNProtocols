@@ -21,6 +21,12 @@ class AndroidLibraryPlugin : Plugin<Project> {
                 defaultConfig.targetSdk = (findProperty("android.targetSdk") as String).toInt()
 
                 sourceSets["main"].jniLibs.srcDir("src/main/jniLibs")
+                buildTypes {
+                    getByName("release") {
+                        consumerProguardFiles("consumer-rules.pro")
+                        proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+                    }
+                }
                 publishing {
                     singleVariant("release") {
                         withSourcesJar()

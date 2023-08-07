@@ -4,7 +4,6 @@ import android.content.Context
 import com.tim.basevpn.delegate.VPNRunner
 import com.tim.basevpn.delegate.VpnConnectionServiceDelegate
 import com.tim.basevpn.state.ConnectionState
-import com.tim.shadowsocksr.ShadowsocksRVpnConfig
 import com.tim.shadowsocksr.service.ShadowsocksService
 import kotlin.properties.ReadOnlyProperty
 

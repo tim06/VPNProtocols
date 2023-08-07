@@ -1,15 +1,11 @@
 package com.tim.basevpn.delegate
 
-import android.os.Parcelable
+import com.tim.basevpn.configuration.VpnConfiguration
 
 /**
  * @Author: Timur Hojatov
  */
 interface VPNRunner {
-    fun <T: Parcelable> start(
-        config: T,
-        notificationClassName: String? = null,
-        allowedApps: Set<String> = emptySet()
-    )
+    fun start(config: VpnConfiguration<*>)
     fun stop()
 }

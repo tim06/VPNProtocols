@@ -124,12 +124,11 @@ internal class OpenVpnManagementThread(
         return false
     }
 
-    fun stopVPN(): Boolean = socket.run {
+    fun stopVPN() = socket.run {
         runCatching {
             sendMessage("signal SIGINT\n")
             close()
         }
-        true
     }
 
     fun setTunOptions(tunOptions: TunOptions? = null) =

@@ -20,5 +20,8 @@ class SelectProtocolFragment : Fragment(R.layout.select_protocol_fragment) {
         selectProtocolFragmentBinding.openvpnButton.setOnClickListener {
             findNavController().navigate(R.id.action_selectProtocolFragment_to_openvpnFragment)
         }
+        selectProtocolFragmentBinding.ikev2Button.setOnClickListener {
+            findNavController().navigate(R.id.action_selectProtocolFragment_to_ikev2Fragment)
+        }
     }
 }

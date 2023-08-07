@@ -3,18 +3,20 @@ package com.tim.notification
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.os.Build
 
 class DefaultVpnServiceNotification(
     private val service: Service,
     private val notificationManager: NotificationManager
-): VpnServiceNotification {
+) : VpnServiceNotification {
 
     override fun start() {
         val notification = createNotification("")
         service.startForeground(NOTIFICATION_ID, notification)
     }
+
     //@Suppress("DEPRECATION")
     override fun stop() {
         service.stopForeground(true)
@@ -38,19 +40,21 @@ class DefaultVpnServiceNotification(
         } else {
             Notification.Builder(service)
         }
+        val packageName = service.applicationContext.packageName
+        val launchIntent = service.packageManager.getLaunchIntentForPackage(packageName)
         return builder
             .setWhen(0)
             .setSmallIcon(R.drawable.ic_key)
             //.setColor(ContextCompat.getColor(applicationContext, R.color.material_accent_500))
             //.setTicker(getString(R.string.vpn_started))
             .setContentTitle("VPN Service")
-            .build()
-        /*.setContentIntent(
-            PendingIntent.getActivity(
-                this, 0, Intent(this, MainActivity::class.java)
-                    .setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT), 0
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    service, 0, launchIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
             )
-        )*/
+            .build()
         //.setSmallIcon(R.drawable.ic_icon_24)
     }
 

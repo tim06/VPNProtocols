@@ -4,8 +4,9 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.tim.basevpn.configuration.VpnConfiguration
 import com.tim.basevpn.state.ConnectionState
-import com.tim.openvpn.OpenVPNConfig
+import com.tim.openvpn.configuration.OpenVPNConfig
 import com.tim.openvpn.delegate.openVPN
 import com.tim.vpnprotocols.compose.base.BaseController
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,16 +36,14 @@ class OpenVPNController(
     private val mutableStateFlow = MutableStateFlow(ConnectionState.IDLE)
     override val connectionState: StateFlow<ConnectionState> = mutableStateFlow.asStateFlow()
 
-    private val Context.vpnService by openVPN(
-        config = config
-    ) { connectionStatus ->
+    private val Context.vpnService by openVPN { connectionStatus ->
         mutableStateFlow.value = connectionStatus
     }
 
     override fun startVpn() {
         mutableStateFlow.value = ConnectionState.CONNECTING
         context.vpnService.start(
-            config = OpenVPNConfig()
+            config = VpnConfiguration(OpenVPNConfig(), emptySet())
         )
     }
 

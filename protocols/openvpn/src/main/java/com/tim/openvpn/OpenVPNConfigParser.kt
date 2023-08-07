@@ -1,9 +1,15 @@
 package com.tim.openvpn
 
+import com.tim.openvpn.configuration.OpenVPNConfig
+
 /**
  * @Author: Тимур Ходжатов
  */
-class OpenVPNConfigParser {
+object OpenVPNConfigParser {
+
+    fun parse(config: String): OpenVPNConfig {
+        return configFromLines(config.lines())
+    }
 
     fun configFromLines(lines: List<String>): OpenVPNConfig {
         var config = OpenVPNConfig(type = "tcp-client")
@@ -60,7 +66,5 @@ class OpenVPNConfigParser {
         return toList().slice(startIndexOfKey..endIndexOfKey).joinToString("\n")
     }
 
-    private companion object {
-        private const val EMPTY_SPACE_CHAR_CODE = 32
-    }
+    private const val EMPTY_SPACE_CHAR_CODE = 32
 }

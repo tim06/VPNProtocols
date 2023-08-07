@@ -1,7 +1,7 @@
 package com.tim.vpnprotocols.compose.viewmodel
 
 import androidx.compose.runtime.Composable
-import com.tim.openvpn.OpenVPNConfig
+import com.tim.openvpn.configuration.OpenVPNConfig
 import com.tim.shadowsocksr.ShadowsocksRVpnConfig
 import com.tim.vpnprotocols.compose.edit.ConfigEditViewModel
 import com.tim.vpnprotocols.compose.navigation.VpnProtocol

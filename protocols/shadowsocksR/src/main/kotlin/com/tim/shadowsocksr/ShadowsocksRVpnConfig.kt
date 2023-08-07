@@ -1,6 +1,6 @@
 package com.tim.shadowsocksr
 
-import android.os.Parcelable
+import com.tim.basevpn.configuration.IVpnConfiguration
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -17,4 +17,4 @@ data class ShadowsocksRVpnConfig(
     val method: String? = "chacha20",
     val dnsAddress: String? = "8.8.8.8",
     val dnsPort: String? = "53"
-) : Parcelable
+) : IVpnConfiguration

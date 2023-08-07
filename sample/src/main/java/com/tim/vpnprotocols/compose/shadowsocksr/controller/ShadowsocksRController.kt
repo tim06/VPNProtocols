@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.tim.basevpn.configuration.VpnConfiguration
 import com.tim.basevpn.state.ConnectionState
 import com.tim.shadowsocksr.ShadowsocksRVpnConfig
 import com.tim.shadowsocksr.delegate.shadowsocksR
@@ -41,7 +42,12 @@ class ShadowsocksRController(
     )
 
     override fun startVpn() {
-        context.vpnService.start(config)
+        context.vpnService.start(
+            VpnConfiguration(
+                config,
+                emptySet()
+            )
+        )
     }
 
     override fun stopVpn() {

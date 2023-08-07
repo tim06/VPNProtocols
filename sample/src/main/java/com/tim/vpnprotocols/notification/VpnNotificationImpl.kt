@@ -17,7 +17,7 @@ class VpnNotificationImpl(
 ) : VpnServiceNotification {
 
     override fun start() {
-        val notification = createNotification()
+        val notification = createNotification("")
         service.startForeground(NOTIFICATION_ID, notification)
     }
 
@@ -28,7 +28,7 @@ class VpnNotificationImpl(
     }
 
     @Suppress("DEPRECATION")
-    override fun createNotification(): Notification {
+    override fun createNotification(description: String): Notification {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel =
                 NotificationChannel(

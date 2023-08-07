@@ -24,3 +24,4 @@ include(
     ":protocols:openvpn",
     ":protocols:shadowsocksR"
 )
+include(":protocols:ikev2")

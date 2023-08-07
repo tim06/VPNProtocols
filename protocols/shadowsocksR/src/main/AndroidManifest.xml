@@ -5,7 +5,8 @@
         <service
             android:name="com.tim.shadowsocksr.service.ShadowsocksService"
             android:exported="false"
-            android:permission="android.permission.BIND_VPN_SERVICE">
+            android:permission="android.permission.BIND_VPN_SERVICE"
+            android:process=":shadowsocksR">
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>

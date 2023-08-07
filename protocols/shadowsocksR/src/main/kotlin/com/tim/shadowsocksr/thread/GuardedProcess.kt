@@ -6,7 +6,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -80,6 +79,7 @@ internal class GuardedProcess(private val cmd: List<String?>) : CoroutineScope {
         process?.destroy() // Уничтожаем процесс
         processJob = null
         process = null
+        streamLoggerJob = null
     }
 
     @TestOnly

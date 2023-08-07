@@ -5,16 +5,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.net.VpnService
-import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import android.os.Parcelable
 import com.tim.basevpn.IConnectionStateListener
 import com.tim.basevpn.IVPNService
+import com.tim.basevpn.configuration.VpnConfiguration
 import com.tim.basevpn.state.ConnectionState
 import com.tim.basevpn.utils.ALLOWED_APPS_SET_EXTRA
-import com.tim.basevpn.utils.CONFIG_EXTRA
 import com.tim.basevpn.utils.NOTIFICATION_IMPL_CLASS_KEY
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -29,11 +27,12 @@ import kotlin.reflect.KProperty
  */
 class VpnConnectionServiceDelegate(
     private val clazz: Class<out VpnService>,
+    private val notificationClassName: String? = null,
+    private val allowedApps: Set<String> = emptySet(),
     private val stateListener: ((ConnectionState) -> Unit),
     private val trafficListener: ((Long, Long, Long, Long) -> Unit)? = null
 ) : ReadOnlyProperty<Context, VPNRunner> {
 
-    private var isBound = false
     private val listener = object : IConnectionStateListener.Stub() {
         override fun stateChanged(status: ConnectionState?) {
             status?.let { state ->
@@ -53,7 +52,6 @@ class VpnConnectionServiceDelegate(
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
             vpnService = IVPNService.Stub.asInterface(p1)
             vpnService?.registerCallback(listener)
-            vpnService?.startVPN()
         }
 
         override fun onServiceDisconnected(p0: ComponentName?) {
@@ -63,53 +61,42 @@ class VpnConnectionServiceDelegate(
     }
 
     override fun getValue(thisRef: Context, property: KProperty<*>): VPNRunner {
+        thisRef.bind(notificationClassName, allowedApps)
         return object : VPNRunner {
 
-            override fun <T : Parcelable> start(
-                config: T,
-                notificationClassName: String?,
-                allowedApps: Set<String>
-            ) {
-                stateListener.invoke(ConnectionState.CONNECTING)
-                thisRef.bind(config, notificationClassName, allowedApps)
+            override fun start(config: VpnConfiguration<*>) {
+                vpnService?.startVPN(config)
             }
 
             override fun stop() {
                 vpnService?.stopVPN()
-                thisRef.unbind()
             }
         }
     }
 
-    private fun <T: Parcelable> Context.bind(
-        config: T,
+    fun Context.bind(
         notificationClassName: String? = null,
         allowedApps: Set<String>
     ) {
-        isBound = bindService(
-            createIntent(config, notificationClassName, allowedApps),
+        bindService(
+            createIntent(notificationClassName, allowedApps),
             serviceConnection,
             Context.BIND_AUTO_CREATE
         )
     }
 
-    private fun Context.unbind() {
-        if (isBound) {
-            unbindService(serviceConnection)
-            stopService(Intent(this, clazz))
-            isBound = false
-        }
+    fun Context.unbind() {
+        unbindService(serviceConnection)
+        stopService(Intent(this, clazz))
     }
 
-    private fun <T: Parcelable> Context.createIntent(
-        config: T,
+    private fun Context.createIntent(
         notificationClassName: String? = null,
         allowedApps: Set<String>
     ) = Intent(
         this,
         clazz
     ).apply {
-        putExtra(CONFIG_EXTRA, config)
         putExtra(NOTIFICATION_IMPL_CLASS_KEY, notificationClassName)
         putExtra(ALLOWED_APPS_SET_EXTRA, allowedApps.toTypedArray())
     }

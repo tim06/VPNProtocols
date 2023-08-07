@@ -1,6 +1,6 @@
 package com.tim.vpnprotocols.compose.edit.row
 
-import com.tim.openvpn.OpenVPNConfig
+import com.tim.openvpn.configuration.OpenVPNConfig
 import com.tim.vpnprotocols.compose.edit.base.ConfigItem
 
 /**

@@ -1,6 +1,6 @@
-package com.tim.openvpn
+package com.tim.openvpn.configuration
 
-import android.os.Parcelable
+import com.tim.basevpn.configuration.IVpnConfiguration
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -14,20 +14,13 @@ data class OpenVPNConfig(
     val ca: String? = null,
     val key: String? = null,
     val cert: String? = null,
-    val tlsCrypt: String? = null
-) : Parcelable {
+    val tlsCrypt: String? = null,
+    val configuration: String? = null
+) : IVpnConfiguration {
 
-    fun buildConfig(socketCacheDir: String): String {
+    fun buildConfig(): String {
         return StringBuilder().apply {
-            append("# Start config\n")
-            append("management $socketCacheDir/mgmtsocket unix\n")
-            append("management-client\n")
-            append("management-query-passwords\n")
-            append("management-hold\n\n")
-
-            append("machine-readable-output\n")
-            append("allow-recursive-routing\n")
-            append("ifconfig-nowarn\n")
+            append("# Config for OpenVPN 3 C++\n")
 
             append("client\n")
             append("verb 4\n")
@@ -44,8 +37,6 @@ data class OpenVPNConfig(
 
             append("persist-tun\n")
             append("preresolve\n")
-            // # Use system proxy setting
-            append("management-query-proxy\n")
 
             append("${ca}\n")
             append("${key}\n")

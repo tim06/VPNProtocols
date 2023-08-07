@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.tim.basevpn.configuration.VpnConfiguration
 import com.tim.basevpn.state.ConnectionState
 import com.tim.shadowsocksr.ShadowsocksRVpnConfig
 import com.tim.shadowsocksr.delegate.shadowsocksR
@@ -43,9 +44,12 @@ class ShadowsocksrFragment : Fragment(R.layout.shadowsocks_fragment_layout) {
 
     private fun startVpn() {
         requireContext().applicationContext.vpnService.start(
-            config = ShadowsocksRVpnConfig(
-                host = "212.113.122.223",
-                password = "12345678"
+            VpnConfiguration(
+                ShadowsocksRVpnConfig(
+                    host = "212.113.122.223",
+                    password = "12345678"
+                ),
+                emptySet()
             )
         )
     }

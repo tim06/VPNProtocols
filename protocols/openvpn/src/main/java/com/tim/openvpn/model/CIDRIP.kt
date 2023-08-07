@@ -2,6 +2,7 @@ package com.tim.openvpn.model
 
 import java.util.*
 
+
 /**
  * @Author: Timur Hojatov
  */
@@ -9,6 +10,8 @@ data class CIDRIP(
     var ip: String,
     var len: Int
 ) {
+
+    internal constructor(ip: String, mask: String) : this(ip, calculateLenFromMask(mask))
 
     internal constructor(ip: String, mask: String, mode: String) : this(ip, calculateLenFromMask(mask)) {
         val netMaskAsInt = getInt(mask)
@@ -33,11 +36,30 @@ data class CIDRIP(
         }
     }
 
+    fun getInt(): Long = getInt(ip)
+
+    fun normalise(): Boolean {
+        val ip1 = getInt(ip)
+        val newip = ip1 and (0xffffffffL shl 32 - len)
+        return if (newip != ip1) {
+            ip = String.format(
+                Locale.US,
+                "%d.%d.%d.%d",
+                newip and 0xff000000L shr 24,
+                newip and 0xff0000L shr 16,
+                newip and 0xff00L shr 8,
+                newip and 0xffL
+            )
+            true
+        } else {
+            false
+        }
+    }
+
     override fun toString(): String {
         return String.format(Locale.ENGLISH, "%s/%d", ip, len)
     }
 
-    fun getInt(): Long = getInt(ip)
 
     companion object {
         private const val MASK_LENGTH_MAX = 32

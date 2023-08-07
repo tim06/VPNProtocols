@@ -15,7 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.tim.openvpn.OpenVPNConfig
+import com.tim.openvpn.configuration.OpenVPNConfig
 import com.tim.vpnprotocols.compose.CONFIG_EDIT_SCREEN
 import com.tim.vpnprotocols.compose.base.AppTopBar
 import com.tim.vpnprotocols.compose.base.VpnScreen

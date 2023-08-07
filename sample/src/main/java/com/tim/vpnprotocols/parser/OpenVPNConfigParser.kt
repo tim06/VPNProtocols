@@ -3,7 +3,7 @@ package com.tim.vpnprotocols.parser
 import android.content.ContentResolver
 import android.net.Uri
 import android.util.Log
-import com.tim.openvpn.OpenVPNConfig
+import com.tim.openvpn.configuration.OpenVPNConfig
 
 /**
  * @Author: Тимур Ходжатов
