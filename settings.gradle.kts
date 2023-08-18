@@ -13,6 +13,9 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         mavenLocal()
+
+        // todo remove RoomigrantLib
+        maven { setUrl("https://jitpack.io") }
     }
 }
 
@@ -22,6 +25,7 @@ include(
     ":base:notification",
     ":base:basevpn",
     ":protocols:openvpn",
-    ":protocols:shadowsocksR"
+    ":protocols:shadowsocksR",
+    ":protocols:ikev2",
+    ":protocols:xtlsr"
 )
-include(":protocols:ikev2")

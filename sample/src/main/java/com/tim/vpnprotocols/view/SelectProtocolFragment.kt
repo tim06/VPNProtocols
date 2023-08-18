@@ -23,5 +23,8 @@ class SelectProtocolFragment : Fragment(R.layout.select_protocol_fragment) {
         selectProtocolFragmentBinding.ikev2Button.setOnClickListener {
             findNavController().navigate(R.id.action_selectProtocolFragment_to_ikev2Fragment)
         }
+        selectProtocolFragmentBinding.xtlsButton.setOnClickListener {
+            findNavController().navigate(R.id.action_selectProtocolFragment_to_XTLSServiceFragment)
+        }
     }
 }

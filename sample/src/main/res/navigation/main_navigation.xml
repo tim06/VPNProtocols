@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_selectProtocolFragment_to_ikev2Fragment"
             app:destination="@id/ikev2Fragment" />
+        <action
+            android:id="@+id/action_selectProtocolFragment_to_XTLSServiceFragment"
+            app:destination="@id/XTLSServiceFragment" />
     </fragment>
     <fragment
         android:id="@+id/shadowsocksrFragment"
@@ -29,4 +32,8 @@
         android:id="@+id/ikev2Fragment"
         android:name="com.tim.vpnprotocols.view.ikev2.Ikev2Fragment"
         android:label="Ikev2Fragment" />
+    <fragment
+        android:id="@+id/XTLSServiceFragment"
+        android:name="com.tim.vpnprotocols.view.xtls.XTLSServiceFragment"
+        android:label="XTLSServiceFragment" />
 </navigation>

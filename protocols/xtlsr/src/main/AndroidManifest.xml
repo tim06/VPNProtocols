@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+        <activity
+            android:name="io.nekohasekai.sagernet.ui.VpnRequestActivity"
+            android:excludeFromRecents="true"
+            android:taskAffinity="" />
+
+        <service
+            android:name="io.nekohasekai.sagernet.bg.ProxyService"
+            android:exported="false"
+            android:process=":bg" />
+
+        <service
+            android:name="io.nekohasekai.sagernet.bg.VpnService"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_VPN_SERVICE"
+            android:process=":bg">
+
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name="io.nekohasekai.sagernet.bg.TileService"
+            android:exported="true"
+            android:icon="@drawable/ic_service_active"
+            android:label="@string/tile_title"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:process=":bg"
+            tools:targetApi="n">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+                android:value="true" />
+        </service>
+
+        <receiver
+            android:name="io.nekohasekai.sagernet.BootReceiver"
+            android:enabled="false"
+            android:exported="true"
+            android:process=":bg">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

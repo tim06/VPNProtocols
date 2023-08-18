@@ -50,5 +50,12 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:text="WireGuard" />
+
+        <Button
+            android:id="@+id/xtlsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="XTLS-Reality" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

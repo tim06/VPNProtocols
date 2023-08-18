@@ -46,7 +46,7 @@ class ShadowsocksrFragment : Fragment(R.layout.shadowsocks_fragment_layout) {
         requireContext().applicationContext.vpnService.start(
             VpnConfiguration(
                 ShadowsocksRVpnConfig(
-                    host = "212.113.122.223",
+                    host = "94.228.115.103",
                     password = "12345678"
                 ),
                 emptySet()

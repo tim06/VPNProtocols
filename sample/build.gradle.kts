@@ -54,12 +54,16 @@ android {
 }
 
 dependencies {
+    // xtls
+    implementation(files("libs/libcore.aar"))
+
     //Modules
     //implementation(libs.tim.openvpn)
     //implementation(libs.tim.shadowsocksr)
     implementation(project(":protocols:openvpn"))
     implementation(project(":protocols:shadowsocksR"))
     implementation(project(":protocols:ikev2"))
+    implementation(project(":protocols:xtlsr"))
 
     //AndroidX
     implementation(libs.androidx.core)
