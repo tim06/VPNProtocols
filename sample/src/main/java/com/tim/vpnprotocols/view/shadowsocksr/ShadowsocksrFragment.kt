@@ -1,16 +1,18 @@
 package com.tim.vpnprotocols.view.shadowsocksr
 
-import android.content.Context
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.tim.basevpn.configuration.VpnConfiguration
 import com.tim.basevpn.state.ConnectionState
 import com.tim.shadowsocksr.ShadowsocksRVpnConfig
-import com.tim.shadowsocksr.delegate.shadowsocksR
+import com.tim.shadowsocksr.connection.ShadowsocksRVpnConnection
 import com.tim.vpnprotocols.R
 import com.tim.vpnprotocols.databinding.ShadowsocksFragmentLayoutBinding
+import kotlinx.coroutines.launch
 
 /**
  * Shadowsocks implementation
@@ -19,16 +21,23 @@ import com.tim.vpnprotocols.databinding.ShadowsocksFragmentLayoutBinding
  */
 class ShadowsocksrFragment : Fragment(R.layout.shadowsocks_fragment_layout) {
 
-    private val Context.vpnService by shadowsocksR(
-        stateListener = { connectionStatus ->
-            updateState(connectionStatus)
-        },
-        trafficListener = { txTotal, rxTotal, txRate, rxRate ->
-
-        }
-    )
+    private var connection: ShadowsocksRVpnConnection? = null
 
     private val layoutBinding: ShadowsocksFragmentLayoutBinding by viewBinding()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        connection = ShadowsocksRVpnConnection(
+            context = requireContext(),
+            stateListener = { connectionStatus ->
+                updateState(connectionStatus)
+            }
+        )
+        return super.onCreateView(inflater, container, savedInstanceState)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -37,25 +46,42 @@ class ShadowsocksrFragment : Fragment(R.layout.shadowsocks_fragment_layout) {
                 startVpn()
             }
             stopButton.setOnClickListener {
-                stopVpn()
+                //stopVpn()
+                onDestroy()
             }
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        connection?.stopServiceIfNeed(false)
+    }
+
     private fun startVpn() {
-        requireContext().applicationContext.vpnService.start(
-            VpnConfiguration(
+        lifecycleScope.launch {
+            connection?.start(
                 ShadowsocksRVpnConfig(
-                    host = "94.228.115.103",
-                    password = "12345678"
-                ),
-                emptySet()
+                    name="ShadowsockR configuration",
+                    host="162.19.204.76",
+                    localPort=1080,
+                    remotePort=443,
+                    password="asdKkaskJKfnsa",
+                    protocol="origin",
+                    protocolParam="",
+                    obfs="http_simple",
+                    obfsParam="",
+                    method="aes-256-cfb",
+                    dnsAddress="8.8.8.8",
+                    dnsPort="53"
+                )
             )
-        )
+        }
     }
 
     private fun stopVpn() {
-        requireContext().applicationContext.vpnService.stop()
+        lifecycleScope.launch {
+            connection?.stop()
+        }
     }
 
     private fun updateState(state: ConnectionState) {

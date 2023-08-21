@@ -367,7 +367,7 @@ class NekoJSInterface(val plgId: String) {
         }
 
         // now it's manually managed
-        suspend fun destroyAllJsi() = withContext(Dispatchers.Main) {
+        fun destroyAllJsi() { //withContext(Dispatchers.Main) {
             map.forEach { (t, u) ->
                 u.destroy()
                 map.remove(t)

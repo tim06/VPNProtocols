@@ -102,14 +102,14 @@ fun String.decodeBase64UrlSafe(): String {
 
 class SubscriptionFoundException(val link: String) : RuntimeException()
 
-suspend fun parseProxies(text: String): List<AbstractBean> {
+fun parseProxies(text: String): List<AbstractBean> {
     val links = text.split('\n').flatMap { it.trim().split(' ') }
     val linksByLine = text.split('\n').map { it.trim() }
 
     val entities = ArrayList<AbstractBean>()
     val entitiesByLine = ArrayList<AbstractBean>()
 
-    suspend fun String.parseLink(entities: ArrayList<AbstractBean>) {
+    fun String.parseLink(entities: ArrayList<AbstractBean>) {
         if (startsWith("clash://install-config?") || startsWith("sn://subscription?")) {
             throw SubscriptionFoundException(this)
         }
@@ -188,7 +188,7 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
                 Logs.w(it)
             }
         } else { // Neko Plugins
-            NekoPluginManager.getProtocols().forEach { obj ->
+            /*NekoPluginManager.getProtocols().forEach { obj ->
                 obj.protocolConfig.optJSONArray("links")?.forEach { _, any ->
                     if (any is String && startsWith(any)) {
                         runCatching {
@@ -202,7 +202,7 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
                         }
                     }
                 }
-            }
+            }*/
         }
     }
 

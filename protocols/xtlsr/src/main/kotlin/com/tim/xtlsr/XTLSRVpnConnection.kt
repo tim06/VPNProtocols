@@ -1,28 +1,20 @@
 package com.tim.xtlsr
 
 import android.content.Context
-import android.content.Intent
 import com.tim.basevpn.configuration.VpnConfiguration
 import com.tim.basevpn.connection.VpnConnection
+import com.tim.basevpn.connection.VpnServiceConnection
 import com.tim.basevpn.state.ConnectionState
-import com.tim.basevpn.utils.NOTIFICATION_IMPL_CLASS_KEY
-import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.group.RawUpdater
 
-class XTLSRConnection(
+class XTLSRVpnConnection(
     context: Context,
     stateListener: ((ConnectionState) -> Unit)? = null
-) : VpnConnection<VpnService>(
+) : VpnServiceConnection(
     context = context,
     clazz = VpnService::class.java,
     stateListener = stateListener
-) {
-    override val intentAdditionalParams: (Intent) -> Intent = { intent: Intent ->
-        intent.apply {
-            action = Action.SERVICE
-        }
-    }
-}
+)

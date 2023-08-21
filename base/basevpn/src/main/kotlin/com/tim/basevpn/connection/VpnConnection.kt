@@ -20,6 +20,10 @@ abstract class VpnConnection<T : Service>(
     private val stateListener: ((ConnectionState) -> Unit)? = null
 ) : VPNRunner {
 
+    open val intentAdditionalParams: (Intent) -> Intent = { intent: Intent ->
+        intent
+    }
+
     private var vpnService: IVPNService? = null
 
     private var connectionListener: ConnectionListener? = null
@@ -87,8 +91,11 @@ abstract class VpnConnection<T : Service>(
 
     fun bindService(withPostInitialState: Boolean) {
         postInitialState = withPostInitialState
+        val intent = Intent(context, clazz).also {
+            intentAdditionalParams.invoke(it)
+        }
         context.bindService(
-            Intent(context, clazz),
+            intent,
             serviceConnection,
             Context.BIND_AUTO_CREATE
         )

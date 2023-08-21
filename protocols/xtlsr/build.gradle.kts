@@ -14,7 +14,7 @@ android {
 }
 
 dependencies {
-    implementation(files("libs/libcore.aar"))
+    compileOnly(files("libs/libcore.aar"))
 
     api(libs.tim.base)
     api(libs.tim.notification)

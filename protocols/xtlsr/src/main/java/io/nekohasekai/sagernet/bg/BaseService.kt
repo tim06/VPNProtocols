@@ -111,7 +111,7 @@ class BaseService {
 
         override fun startVPN(configuration: VpnConfiguration<*>?) {
             when (val configData = configuration?.data) {
-                is XTLSRVpnConfig -> data?.service?.startVPN(configData.proxyEntity)
+                is XTLSRVpnConfig -> data?.service?.startVPN(requireNotNull(configData.build()))
                 else -> Logs.e("Unknown configuration model")
             }
         }

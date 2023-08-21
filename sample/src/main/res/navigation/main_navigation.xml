@@ -22,7 +22,7 @@
     </fragment>
     <fragment
         android:id="@+id/shadowsocksrFragment"
-        android:name="com.tim.vpnprotocols.view.shadowsocksr.ShadowsocksrServiceFragment"
+        android:name="com.tim.vpnprotocols.view.shadowsocksr.ShadowsocksrFragment"
         android:label="ShadowsocksrFragment" />
     <fragment
         android:id="@+id/openvpnFragment"

@@ -10,16 +10,17 @@ import android.os.Build
 import android.text.format.Formatter
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import io.nekohasekai.sagernet.Action
 import com.tim.xtlsr.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
-import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.timer
 
 /**
  * User can customize visibility of notification since Android 8.
@@ -44,11 +45,41 @@ class ServiceNotification(
             /*val gn = if (DataStore.showGroupInNotification)
                 SagerDatabase.groupDao.getById(ent.groupId)?.displayName() else null
             return if (gn == null) ent.displayName() else "[$gn] ${ent.displayName()}"*/
-            return "title"
+            return "VPN"
         }
     }
 
     var listenPostSpeed = true
+
+    private val initTime: Long = System.currentTimeMillis()
+    private val timer = timer(
+        name = "VPN Disconnect",
+        daemon = true,
+        initialDelay = 0,
+        period = 1000
+    ) {
+        val connectionAliveTime = TimeUnit.HOURS.toMillis(1)
+        val endTime = initTime + connectionAliveTime
+        val workRange = initTime..endTime
+        val now = System.currentTimeMillis()
+        if (now in workRange) {
+            // todo fix scope
+            runOnMainDispatcher {
+                useBuilder {
+                    val remained = (endTime - now)
+                    it.setContentTitle("Time left: ${formatMilliseconds(remained)}")
+                }
+                update()
+            }
+        } else {
+            service.stopRunner(false)
+        }
+    }
+
+    private fun formatMilliseconds(milliseconds: Long): String {
+        val format = SimpleDateFormat("mm:ss")
+        return format.format(Date(milliseconds))
+    }
 
     suspend fun postNotificationSpeedUpdate(stats: SpeedDisplayData) {
         useBuilder {
@@ -113,7 +144,7 @@ class ServiceNotification(
         .setContentTitle(title)
         .setOnlyAlertOnce(true)
         .setContentIntent(SagerNet.configureIntent(service))
-        .setSmallIcon(R.drawable.ic_service_active)
+        .setSmallIcon(R.drawable.ic_service_connected)
         .setCategory(NotificationCompat.CATEGORY_SERVICE)
         .setPriority(if (visible) NotificationCompat.PRIORITY_LOW else NotificationCompat.PRIORITY_MIN)
 
@@ -148,12 +179,12 @@ class ServiceNotification(
         useBuilder {
             it.clearActions()
 
-            val closeAction = NotificationCompat.Action.Builder(
+            /*val closeAction = NotificationCompat.Action.Builder(
                 0, service.getText(R.string.stop), PendingIntent.getBroadcast(
                     service, 0, Intent(Action.CLOSE).setPackage(service.packageName), flags
                 )
             ).setShowsUserInterface(false).build()
-            it.addAction(closeAction)
+            it.addAction(closeAction)*/
 
             /*val switchAction = NotificationCompat.Action.Builder(
                 0, service.getString(R.string.action_switch), PendingIntent.getActivity(
@@ -162,13 +193,13 @@ class ServiceNotification(
             ).setShowsUserInterface(false).build()
             it.addAction(switchAction)*/
 
-            val resetUpstreamAction = NotificationCompat.Action.Builder(
+            /*val resetUpstreamAction = NotificationCompat.Action.Builder(
                 0, service.getString(R.string.reset_connections),
                 PendingIntent.getBroadcast(
                     service, 0, Intent(Action.RESET_UPSTREAM_CONNECTIONS), flags
                 )
             ).setShowsUserInterface(false).build()
-            it.addAction(resetUpstreamAction)
+            it.addAction(resetUpstreamAction)*/
         }
     }
 
@@ -187,6 +218,7 @@ class ServiceNotification(
     }
 
     fun destroy() {
+        timer.cancel()
         listenPostSpeed = false
         (service as Service).stopForeground(true)
         service.unregisterReceiver(this)

@@ -15,10 +15,10 @@ import java.util.*
 object ProfileManager {
 
     interface Listener {
-        suspend fun onAdd(profile: ProxyEntity)
-        suspend fun onUpdated(data: TrafficData)
-        suspend fun onUpdated(profile: ProxyEntity, noTraffic: Boolean)
-        suspend fun onRemoved(groupId: Long, profileId: Long)
+        fun onAdd(profile: ProxyEntity)
+        fun onUpdated(data: TrafficData)
+        fun onUpdated(profile: ProxyEntity, noTraffic: Boolean)
+        fun onRemoved(groupId: Long, profileId: Long)
     }
 
     interface RuleListener {
@@ -31,7 +31,7 @@ object ProfileManager {
     private val listeners = ArrayList<Listener>()
     private val ruleListeners = ArrayList<RuleListener>()
 
-    suspend fun iterator(what: suspend Listener.() -> Unit) {
+    fun iterator(what: Listener.() -> Unit) {
         synchronized(listeners) {
             listeners.toList()
         }.forEach { listener ->
@@ -72,7 +72,7 @@ object ProfileManager {
         }
     }
 
-    suspend fun createProfile(groupId: Long, bean: AbstractBean): ProxyEntity {
+    fun createProfile(groupId: Long, bean: AbstractBean): ProxyEntity {
         bean.applyDefaultValues()
 
         val profile = ProxyEntity(groupId = groupId).apply {
