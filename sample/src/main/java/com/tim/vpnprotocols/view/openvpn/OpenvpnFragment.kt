@@ -5,8 +5,8 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.tim.basevpn.state.ConnectionState
-import com.tim.openvpn.OpenVPNConnection
 import com.tim.openvpn.configuration.OpenVPNConfig
+import com.tim.openvpn.connection.OpenVPNConnection
 import com.tim.vpnprotocols.R
 import com.tim.vpnprotocols.databinding.OpenvpnFragmentLayoutBinding
 import com.tim.vpnprotocols.view.shadowsocksr.VpnActivityResultContract
@@ -62,7 +62,7 @@ class OpenvpnFragment : Fragment(R.layout.openvpn_fragment_layout) {
 val configuration = "client\n" +
         "dev tun\n" +
         "proto tcp\n" +
-        "remote us12.freeconnect.link 443\n" +
+        "remote 0.0.0.0 443\n" +
         "resolv-retry infinite\n" +
         "nobind\n" +
         "persist-key\n" +

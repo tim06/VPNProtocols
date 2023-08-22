@@ -1,4 +1,4 @@
-package com.tim.openvpn
+package com.tim.openvpn.connection
 
 import android.content.Context
 import com.tim.basevpn.connection.VpnConnection
