@@ -34,13 +34,14 @@ public class OpenVPNThreadv3 extends ClientAPI_OpenVPNClient implements Runnable
     private final IOpenVPNService mService;
     /* The methods in OpenVPN3 can take a long time, so we do async messages to handle them
      * to avoid ANR on the service main thread */
+    private HandlerThread mHandlerThread;
     private final Handler mHandler;
 
     public OpenVPNThreadv3(IOpenVPNService openVpnService, String config) {
         OpenVPNLogger.d("OpenVPNThreadv3", "Configuration: \n" + config);
         configuration = config;
         mService = openVpnService;
-        HandlerThread mHandlerThread = new HandlerThread("OpenVPN3Thread");
+        mHandlerThread = new HandlerThread("OpenVPN3Thread");
         mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper());
     }
@@ -324,6 +325,7 @@ public class OpenVPNThreadv3 extends ClientAPI_OpenVPNClient implements Runnable
     @Override
     public void stop() {
         super.stop();
+        mHandlerThread.quit();
         mService.openvpnStopped();
     }
 

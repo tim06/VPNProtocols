@@ -7,5 +7,6 @@ import kotlinx.parcelize.Parcelize
 data class VpnConfiguration<T : IVpnConfiguration>(
     val data: T,
     val allowedApps: Set<String>,
-    val notificationClassName: String? = null
+    val notificationClassName: String? = null,
+    val timeToDisconnect: Long? = null
 ) : Parcelable

@@ -172,6 +172,11 @@ public class VpnStateFragment extends Fragment implements VpnStateListener
 		updateView();
 	}
 
+	@Override
+	public void notificationDescriptionChanged(String description) {
+
+	}
+
 	public void updateView()
 	{
 		long connectionID = mService.getConnectionID();

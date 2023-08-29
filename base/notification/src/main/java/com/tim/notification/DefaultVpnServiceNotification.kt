@@ -48,6 +48,7 @@ class DefaultVpnServiceNotification(
             //.setColor(ContextCompat.getColor(applicationContext, R.color.material_accent_500))
             //.setTicker(getString(R.string.vpn_started))
             .setContentTitle("VPN Service")
+            .setContentText(description)
             .setContentIntent(
                 PendingIntent.getActivity(
                     service, 0, launchIntent,

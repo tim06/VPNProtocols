@@ -78,13 +78,15 @@ abstract class VpnConnection<T : Service>(
     fun start(
         config: IVpnConfiguration,
         allowedApps: Set<String> = emptySet(),
-        notificationClassName: String? = null
+        notificationClassName: String? = null,
+        timeToDisconnect: Long? = null,
     ) {
         start(
             config = VpnConfiguration(
                 data = config,
                 allowedApps = allowedApps,
-                notificationClassName = notificationClassName
+                notificationClassName = notificationClassName,
+                timeToDisconnect = timeToDisconnect
             )
         )
     }

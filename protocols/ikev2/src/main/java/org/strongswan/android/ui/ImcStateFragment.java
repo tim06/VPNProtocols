@@ -192,6 +192,11 @@ public class ImcStateFragment extends Fragment implements VpnStateListener
 		updateView();
 	}
 
+	@Override
+	public void notificationDescriptionChanged(String description) {
+
+	}
+
 	public void updateView()
 	{
 		FragmentManager fm = getParentFragmentManager();

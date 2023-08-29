@@ -72,6 +72,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.SortedSet;
 
 import androidx.core.app.NotificationCompat;
@@ -424,10 +425,14 @@ public class CharonVpnService extends VpnService implements Runnable, VpnStateSe
 
 
 	private VpnServiceNotification vpnNotification;
+	private Notification buildNotification(boolean publicVersion)
+	{
+		return buildNotification(publicVersion, null);
+	}
 	/**
 	 * Build a notification matching the current state
 	 */
-	private Notification buildNotification(boolean publicVersion)
+	private Notification buildNotification(boolean publicVersion, String description)
 	{
 		ErrorState error = mService.getErrorState();
 		if (mService.notificationClassName != null) {
@@ -440,7 +445,7 @@ public class CharonVpnService extends VpnService implements Runnable, VpnStateSe
 					Class cl = Class.forName(mService.notificationClassName);
 					vpnNotification = (VpnServiceNotification) cl.getConstructor(Service.class, NotificationManager.class)
 							.newInstance(this, notificationManager);
-					return vpnNotification.createNotification("");
+					return vpnNotification.createNotification(Objects.requireNonNullElse(description, ""));
 				} catch (Exception e) {
 					throw new IllegalStateException("error with notification classname");
 				}
@@ -451,7 +456,7 @@ public class CharonVpnService extends VpnService implements Runnable, VpnStateSe
 				setState(State.DISABLED);
 				return null;
 			}
-			return vpnNotification.createNotification("");
+			return vpnNotification.createNotification(Objects.requireNonNullElse(description, ""));
 		} else {
 			VpnProfile profile = mService.getProfile();
 			State state = mService.getState();
@@ -563,6 +568,9 @@ public class CharonVpnService extends VpnService implements Runnable, VpnStateSe
 					flags
 			);
 
+			if (description != null) {
+				builder.setContentText(description);
+			}
 			builder.setContentIntent(pending);
 			return builder.build();
 		}
@@ -574,6 +582,18 @@ public class CharonVpnService extends VpnService implements Runnable, VpnStateSe
 		{
 			NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 			Notification nt = buildNotification(false);
+			if (nt != null) {
+				manager.notify(VPN_STATE_NOTIFICATION_ID, nt);
+			}
+		}
+	}
+
+	@Override
+	public void notificationDescriptionChanged(String description) {
+		if (mShowNotification)
+		{
+			NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+			Notification nt = buildNotification(false, description);
 			if (nt != null) {
 				manager.notify(VPN_STATE_NOTIFICATION_ID, nt);
 			}

@@ -5,7 +5,7 @@
     <application>
         <service
             android:name=".service.OpenVPNService"
-            android:exported="true"
+            android:exported="false"
             android:permission="android.permission.BIND_VPN_SERVICE"
             android:process=":openvpn">
             <intent-filter>

@@ -197,6 +197,11 @@ public class VpnTileService extends TileService implements VpnStateService.VpnSt
 		updateTile();
 	}
 
+	@Override
+	public void notificationDescriptionChanged(String description) {
+
+	}
+
 	private void updateTile()
 	{
 		VpnProfile profile = mService.getProfile();

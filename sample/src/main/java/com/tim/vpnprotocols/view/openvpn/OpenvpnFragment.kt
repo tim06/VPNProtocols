@@ -6,7 +6,7 @@ import androidx.fragment.app.Fragment
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.tim.basevpn.state.ConnectionState
 import com.tim.openvpn.configuration.OpenVPNConfig
-import com.tim.openvpn.connection.OpenVPNConnection
+import com.tim.openvpn.connection.OpenVPNVpnConnection
 import com.tim.vpnprotocols.R
 import com.tim.vpnprotocols.databinding.OpenvpnFragmentLayoutBinding
 import com.tim.vpnprotocols.view.shadowsocksr.VpnActivityResultContract
@@ -19,7 +19,7 @@ import com.tim.vpnprotocols.view.shadowsocksr.VpnActivityResultContract
 class OpenvpnFragment : Fragment(R.layout.openvpn_fragment_layout) {
 
     private val vpnConnection by lazy {
-        OpenVPNConnection(
+        OpenVPNVpnConnection(
             context = requireContext(),
             stateListener = ::updateConnectionState
         )
@@ -27,7 +27,7 @@ class OpenvpnFragment : Fragment(R.layout.openvpn_fragment_layout) {
 
     private val vpnPermission = registerForActivityResult(VpnActivityResultContract()) {
         if (it) {
-            vpnConnection.start(ovpnConfig1)
+            vpnConnection.start(OpenVPNConfig(configuration = configuration))
         }
     }
 
@@ -35,7 +35,6 @@ class OpenvpnFragment : Fragment(R.layout.openvpn_fragment_layout) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        vpnConnection.bindService(true)
         layoutBinding.apply {
             startButton.setOnClickListener {
                 vpnPermission.launch(Unit)
@@ -50,7 +49,6 @@ class OpenvpnFragment : Fragment(R.layout.openvpn_fragment_layout) {
         super.onDestroy()
         vpnConnection.apply {
             stopServiceIfNeed()
-            clear()
         }
     }
 
@@ -60,145 +58,115 @@ class OpenvpnFragment : Fragment(R.layout.openvpn_fragment_layout) {
 }
 
 val configuration = "client\n" +
-        "dev tun\n" +
-        "proto tcp\n" +
-        "remote 0.0.0.0 443\n" +
-        "resolv-retry infinite\n" +
         "nobind\n" +
-        "persist-key\n" +
-        "persist-tun\n" +
+        "dev tun\n" +
         "remote-cert-tls server\n" +
-        "tls-cipher TLS_CHACHA20_POLY1305_SHA256:TLS-DHE-RSA-WITH-AES-256-GCM-SHA384:TLS-DHE-RSA-WITH-AES-256-CBC-SHA:TLS-DHE-RSA-WITH-AES-128-GCM-SHA256:TLS-DHE-RSA-WITH-AES-128-CBC-SHA:TLS_AES_256_GCM_SHA384:TLS-RSA-WITH-AES-256-CBC-SHA\n" +
-        "verb 5\n" +
-        "\n" +
-        "<ca>\n" +
-        "-----BEGIN CERTIFICATE-----\n" +
-        "MIIGMDCCBBigAwIBAgIJAJ/pf2R2mgCMMA0GCSqGSIb3DQEBCwUAMIGjMQswCQYD\n" +
-        "VQQGEwJQQTEPMA0GA1UECAwGUGFuYW1hMQ8wDQYDVQQHDAZQYW5hbWExGjAYBgNV\n" +
-        "BAoMEUZSRUVWUE5QTEFORVQgTExDMRowGAYDVQQLDBFGUkVFVlBOUExBTkVULkNP\n" +
-        "TTEQMA4GA1UEAwwHUm9vdCBDQTEoMCYGCSqGSIb3DQEJARYZc3VwcG9ydEBmcmVl\n" +
-        "dnBucGxhbmV0LmNvbTAgFw0yMjEwMDQxNzU3MjZaGA8yMDcyMDkyMTE3NTcyNlow\n" +
-        "gaMxCzAJBgNVBAYTAlBBMQ8wDQYDVQQIDAZQYW5hbWExDzANBgNVBAcMBlBhbmFt\n" +
-        "YTEaMBgGA1UECgwRRlJFRVZQTlBMQU5FVCBMTEMxGjAYBgNVBAsMEUZSRUVWUE5Q\n" +
-        "TEFORVQuQ09NMRAwDgYDVQQDDAdSb290IENBMSgwJgYJKoZIhvcNAQkBFhlzdXBw\n" +
-        "b3J0QGZyZWV2cG5wbGFuZXQuY29tMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIIC\n" +
-        "CgKCAgEA2kwXegCAWFsY9mcLvlMmbT0OB634ga6qX6JzFrEejXRNQo+YnRmfyavS\n" +
-        "IQ15TEo8w4GhLsWVAMAXq+lzhIHgWpnvXjRvqKprwG7Q09MkcyYyH389BfKi3yyV\n" +
-        "3Kk4JJ55T+CMjORnjrhMJY3kYidJ6SV6BSdFYUg/89slwViI9Jm+ZkyRpwiGPuqB\n" +
-        "HdA5rcX7mro8E+dROyTsm/eNWuS02zlZVxwtmkrKq0oQTW4R0Kx+rL4hFHS/LR64\n" +
-        "Y6kyPH9rd/LFwrdNUir+Ebk0tnouUnzAqoSIu7ISuvsEJNHZmzbihEyHGzfuuTbQ\n" +
-        "VFKxO67ZJnMICcPsRXh/WH0IPU9Igq0vK6pTU0sdYlv4Z2zcKInmeRuOHkFyvBwt\n" +
-        "qXGMpX1+B6rFQGeY+TE1QaaCvg4y1isyB15Vju4fZsNKfg3D6ym/6KUNHFyKbgUd\n" +
-        "3ThJ8U6yOQd2vfG45fKJY7wsVE0XtF7QGgAQ2yAw+NunIMF6nid+6z5IzVFJrb71\n" +
-        "Cbh2p49DSPdsDbbF95qqvlBoQlXS8FyKGT4Z576zDgdjCZWMay5865XsoE2F2vd7\n" +
-        "zK0klGK74wqKrBhL35iOffv9c8hJbcyLG5eZW2ZgzN85zciohk5F9HNr1or97uXz\n" +
-        "XUtLosAocNqA/Mh2dh3ATG9lDL5lb5ysuWesuMrR1tPSyWHuXK8CAwEAAaNjMGEw\n" +
-        "HQYDVR0OBBYEFJ2qSoC+Qkt7eg06Sr1uoyRCAeBwMB8GA1UdIwQYMBaAFJ2qSoC+\n" +
-        "Qkt7eg06Sr1uoyRCAeBwMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgGG\n" +
-        "MA0GCSqGSIb3DQEBCwUAA4ICAQBZTi8w0oa457vutRcZaGpDiufRqnSkyFIIAf/J\n" +
-        "Rh79AQoC/2IvvPB0z1+JEffQWljDOOXPIujm9iwL0n/BRIcT5zBUi7DVrcbCveQl\n" +
-        "hdzJ+3DdI0OFMcEFHPOlEgB2XxetvN4GVXUBY6VjkrPIzflMSJjdl264OTORp64X\n" +
-        "V6EQy2EkoNdRpR3lYbaJ0Fp+JeXIjJncUxYp+ddS3CFysLU1JtriVys1uNnPTIal\n" +
-        "CryXvr9nBO3r2t92v/x7dXHeU05GW6GHUxitbbw0pSaaON8SCfPjALmK6EwhdQY/\n" +
-        "jaCYkkgm9s/xmFkYy5Da0ciGg/qaunkqEG6K8pRo7WoNavOB98nx8XsU/8Pb9dNP\n" +
-        "Jo6S8SSXuB6kQBg6MayXXuIVL+V5RI/ao127b/WoF090DLR0ymMT8dt9VSKBaE6O\n" +
-        "PmUUD1BFoDTJY2Z8d9Da8qW//EvIeRRO42Jb20XN6jtsvj8avFZt66yywxCw3VXY\n" +
-        "d47fyOskFiTZQI+kyQPzfhreTLO8E90OxQ/m0CGx2jOqEF6Q2kNrdnu/1fxbwsA1\n" +
-        "LmHlXS1lneRD1Co2YlC4JsaSgdhyLICOdE4gtGHtjSRgMaeicK4F3pcII/MkOL04\n" +
-        "IkQrgZ3o1M3ztC4BxF53EfIyi1vO22yvb3Lh+qVKRFzKgTQ5gcVVHjPzZKhl3DtT\n" +
-        "/IQa0w==\n" +
-        "-----END CERTIFICATE-----\n" +
-        "</ca>\n" +
-        "\n" +
-        "<cert>\n" +
-        "-----BEGIN CERTIFICATE-----\n" +
-        "MIIFJTCCAw2gAwIBAgICAJYwDQYJKoZIhvcNAQELBQAwgaMxCzAJBgNVBAYTAlBB\n" +
-        "MQ8wDQYDVQQIDAZQYW5hbWExDzANBgNVBAcMBlBhbmFtYTEaMBgGA1UECgwRRlJF\n" +
-        "RVZQTlBMQU5FVCBMTEMxGjAYBgNVBAsMEUZSRUVWUE5QTEFORVQuQ09NMRAwDgYD\n" +
-        "VQQDDAdSb290IENBMSgwJgYJKoZIhvcNAQkBFhlzdXBwb3J0QGZyZWV2cG5wbGFu\n" +
-        "ZXQuY29tMCAXDTIyMTEyMTIwNDY1MVoYDzIwNTIxMTEzMjA0NjUxWjCBrzELMAkG\n" +
-        "A1UEBhMCUEExDzANBgNVBAgMBlBhbmFtYTEPMA0GA1UEBwwGUGFuYW1hMRYwFAYD\n" +
-        "VQQKDA1GUkVFVlBOUExBTkVUMSQwIgYDVQQLDBtGUkVFVlBOUExBTkVUIEF1dGhv\n" +
-        "cml6YXRpb24xGTAXBgNVBAMMEDIwZjE5ZDI1NDllOTcwYWUxJTAjBgkqhkiG9w0B\n" +
-        "CQEWFmZyZWVAZnJlZXZwbnBsYW5ldC5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IB\n" +
-        "DwAwggEKAoIBAQDWPfEjlVafITlv6Gb21Zg34ocw7nxFg6zYRXCEq7n/KjKo6pJB\n" +
-        "BAbyOjXINdss4CywFABsB4WQrwZRlVTrXc2+d9kHr08/2fvSa0FI0PB8edDE1bWR\n" +
-        "OX8GEtXQndiF/nW5OMYyEZGEMKM8IOXX/koNCEWNaZk5LMoQ76VdYW4bus04XEMq\n" +
-        "DqSuAvEedf1EidOkqJmd10LfVHlYTGGMnD2Ris2hvHZb92qd86QfMI0erP6DM0jn\n" +
-        "5b39sCPhQ8+5gjftDYWb66+QsAM1BBxp5Q4gnZvagF8Av1tBtA1JTNi54+gy+zz9\n" +
-        "R6E3HVOEZ6Xviq57vY2KMcnB5v8aQiEZXhRnAgMBAAGjUzBRMB0GA1UdDgQWBBQ2\n" +
-        "nD6WdxqQZdjtDPD40JQBrVwhjjAfBgNVHSMEGDAWgBSdqkqAvkJLe3oNOkq9bqMk\n" +
-        "QgHgcDAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4ICAQBTJqaO8RJl\n" +
-        "xttkOUNgV5EgbBeWkeFpqAy0xET1JScwAuJtLSxIjw7PNH9JUOSeUvJEXJAw7YaO\n" +
-        "K2c2h6NcfPWz6Rmfy3zUFB41CgbMOl/gI2dYam5Xhwt7lcuiqiMjXnHTF4eQ80bS\n" +
-        "b+s8y+JpaWmoGTIWaTTnjdcoE6oegFSICeAlqt5ttv32SmxZxUl6E81h9cy9XwaB\n" +
-        "CowgxA68NolWBb4/P5GENHjsuRSx6ToHNgOHIuLDf2NA4uF/gViaB69fwsydm83e\n" +
-        "5A1cA1vqerqXBFOYmgWzvsZu+8IoOwERC1bcDiA4KL2ih6dyieE7vuf7V7wSMlGA\n" +
-        "x56Pu+5KYmqEdLbgn0RWVe2RWOr62C07CZdCt5e9q/ADxNmurDVkh2T6GCfPSUJP\n" +
-        "ydUwCHDG+aCxFpdLrz+zC8JSKjm7XvHxeIwwPPVQSPGnERKF7m6kq/2KyBMocGPx\n" +
-        "l52SFLYDb5tpF5cRHsu7Ew8BZZrX7RwbXc1cXKGcn5ApYLJ5Yp/4aNO4xsgKfnAy\n" +
-        "hbqksuv/KN3zqd38bjM3lutweuBVSHal1tDMWex4BQRXiMGf8NIFuVxg9P7DrspS\n" +
-        "TR10pgnuD2dPbGk50fJV0i0sVlhCxd4fOIJTqMErVzrDOirTSRATnvb1sSiuG711\n" +
-        "7exfThMgVwGRxmC/GQYq1pNwr57NvimGGw==\n" +
-        "-----END CERTIFICATE-----\n" +
-        "\n" +
-        "</cert>\n" +
-        "\n" +
+        "proto tcp\n" +
+        "remote 1.5.8.1 403\n" +
+        "auth-user-pass\n" +
         "<key>\n" +
         "-----BEGIN PRIVATE KEY-----\n" +
-        "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDWPfEjlVafITlv\n" +
-        "6Gb21Zg34ocw7nxFg6zYRXCEq7n/KjKo6pJBBAbyOjXINdss4CywFABsB4WQrwZR\n" +
-        "lVTrXc2+d9kHr08/2fvSa0FI0PB8edDE1bWROX8GEtXQndiF/nW5OMYyEZGEMKM8\n" +
-        "IOXX/koNCEWNaZk5LMoQ76VdYW4bus04XEMqDqSuAvEedf1EidOkqJmd10LfVHlY\n" +
-        "TGGMnD2Ris2hvHZb92qd86QfMI0erP6DM0jn5b39sCPhQ8+5gjftDYWb66+QsAM1\n" +
-        "BBxp5Q4gnZvagF8Av1tBtA1JTNi54+gy+zz9R6E3HVOEZ6Xviq57vY2KMcnB5v8a\n" +
-        "QiEZXhRnAgMBAAECggEBAJzIR6eaqgFZ9waGNJN+TB7Zj8WnQRo9+kdqyaTNZxfs\n" +
-        "cZZb0xvxLoQlRSZ3AyYcB5fzizuDZaMz8pPRjIuR4fb5DcIp8PzxMPATvXrkLJlr\n" +
-        "K/Rf0LeuM97l+cLpQIMObGhXu/L4GF18mnhuOsWOOfK/kuah2JeWx2kNdx6XJlTz\n" +
-        "UE8lfGVgOzQzFPWuXPn+t4i+b01eTHUOSntbHPtet00bBOq/bJCD/gFyPRnnFxgx\n" +
-        "dDfpg4jmU+lbYVrxMQMFEkEZeSc9XeXQTDdL2IFUMDaLHT6Nwo66RSjdlJWlfdHF\n" +
-        "1Tw4uaSxtDOBibFwDRL15q0HeBddiL1Ki+WJgHOch4ECgYEA76nQL+W4cpMqVq8r\n" +
-        "4yjQNAMARmWU3z1vscbgA9xpFVEI3JLTvHn4lFZB/XXs4qXjwWpGjieKh0mqQ8zt\n" +
-        "5Yte8fA4YenFsOVKKsMjb3fcVUs4piyelPRcm6/OQa/Gi+Yf1j3NRdZ8Ylv80PQK\n" +
-        "Vfgm+hcgegfdFIprwuAPOYnQ7JkCgYEA5NiE7NHTx6rN9tacdd+fkSiFpo3j4R3N\n" +
-        "CiHP/Q+pjmsG0fugkB7M7Q3UwpD8sH8lUukyGi2UJx5a92dgvXLQMHm3ffbzG+dR\n" +
-        "mAJhuQuWcUrvl/tI/qIzwU3QzKZo3BjhoBpBiNKcI+IOjB0EM2Hqa+ligQvuIvJJ\n" +
-        "RGz8V3+uqP8CgYEAuOl3hI0ku9oKL6mmHfVOduLd4nLb40ZemHbOPoxf05+bS7xJ\n" +
-        "e8FL5v+KmMnUxKajzIZ3+5RMkMdohDloT9QxpE/o4Lri2fJ/P/EhtQ5wxKpuAeCp\n" +
-        "VloX3dNOO2YotaYPaFh0ue6cN7Oro3i3RM9bG1ieqSjKDeAi9s+zT3yi4vkCgYEA\n" +
-        "rnFSGkf0XL6Z1DBSAhRdyUQPZR/B9qdF1hRiPHBE+rgg8c4S3elsosMpTMtCo7O4\n" +
-        "GtSCCax2w78C7paSCrfLdThDJDUrqjiRXQNrxKfNnTzXGI5HXTr9oruTj3zGcAhT\n" +
-        "bTy2efq5ZSz7k9jGi/h2vp2gJeiXNXJlYVCGpphA5rcCgYANcl80M+psaJIyYE5O\n" +
-        "oW1M50dTVJn0EkEbSPbewtawH0AnJN0WYCpGkB5aUtCO24C2Xue0UaXMLDAb6CZT\n" +
-        "uGH5sbzfWMwk9zU/1Y4FpsYs7GFsgB70gQSGSzD+V9hF/XRNhZqdvCup4nkWcPjz\n" +
-        "3jrTdSYkAnLceoI92gK8+nSUzA==\n" +
+        "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC/81Qn1YuRpVZj\n" +
+        "9eBlkeLfdk0NDfTnSVJad9bQSj5uMBxhJ1UQvQOciwXZyH8/3uzW7b8ELnevIQHg\n" +
+        "mcHDNN0nLwYiTI97RH7YVFIgcljivjsrUretyMDIReFxpH5fv+tDNTh1C46gFJTw\n" +
+        "92jxYtKmb2AWfM5y4ROwOInFx7y8vjNSmnkCo370iRV5rJOz2C22yUuaBBX270kt\n" +
+        "zkCoyXvDONGCotgFfKa2fPHbLFYTVCgipz5PgZre1NEn1i0dHeoRxBQfG4FIPGNS\n" +
+        "vFiHzGXDlODVqr7he361IwDoWrFgBwUNF5J36hEvTsmopg95oIM2iAUqxPIxhn1y\n" +
+        "qq7GthVbAgMBAAECggEAGhrMvE7JmJOsmuiX+B2Yhf0lP8bA9+lxVpYLXrASKyhw\n" +
+        "25zz79RSLD/TRQnZlcVKtB+I2wKPdVT0V+ghQVvW+HASkfyT24GhDJOfHa7fZsAp\n" +
+        "9NuJg7a/J8gqf6rizZZ2DOGtMsHRHPU08kvQzQSRvbUnk2IC2P3COzTdNnV9C1/y\n" +
+        "4VMsfVtV2OGnI4jMTA0hb10ClIW/GsjTmocHh90dup8exxXd0VMoykVdZW5XVMFH\n" +
+        "+D8kUb6Ek8zyJSXaubsxmYKv5rf/JhQSEfWFRZfLZPOX6J89pMlJWnC5sXt/TUZ4\n" +
+        "fOkrx+zxTjROp3PQWjWakNVtSrsk5RomfKJJwVem9QKBgQDqIWoWsniMghkIkMfZ\n" +
+        "I9ri0fEeJob2sr95XOSPWn86ltrFhrYVM5MYUYt1PalWgrR79h4CXAP7IkuSJquJ\n" +
+        "y88a5bkoU0Urze8tQ0uNUzpq0jknq1wp8hCKR7Cx8UdFXgxLX+u4E/AfUe9xwrfe\n" +
+        "0P/iJ8IgwKbPVsjZp9gRZJsCDwKBgQDR4UujN0GDLJMew9pIibcyA/jGScAMB+ec\n" +
+        "cLUXGNth8GJuDm60eOlAV7KeIrrij9hRExbjM5SS3Ud8ug8VDU33gJgGBc/gB1yY\n" +
+        "8ln+6FkZqMztkEIoCZJeKJibMteZT1JU0gIfiF7+ciDj2yfT39ahHLaZP2ZBSxo3\n" +
+        "DzQRrWoT9QKBgQDU5jGcFgn8asjsuwqfbzU5EAMbkZkkd4IZj9jeakJLOqYQ++BT\n" +
+        "AyT89hnEMJ/tZMlN941uQ9Hy6UqiybsugEABi2eFPcMmhAq7s/fduRLj0+nZIr+Z\n" +
+        "/N4BgBMym95dO5oeaEjmiGrPcCg14ARm/tHQCqtCMSz+WUImebPGjR9PDQKBgE/G\n" +
+        "0mhc5YMF23ozOfKenkrdpZ9Bg0VPb+NQGBWKdkFZDSEGTWA+IXM6ooNnciASS0gt\n" +
+        "+GIuRgg5IiYv1vHKl9s/PwnzBZwDUFg2rqytBskxF4wpbGwpj0BJMBC2F6uHsiTZ\n" +
+        "msL/pBQVr5jMwevQRpYBAwtnROgGsxVAqysY/pxNAoGACZrFNipF63ClXrOj3rPW\n" +
+        "+FnYZa/XW2APUseMD2sE3aRN/kGAq2/RzcrARuLjJcC2yabJ3Bt0VcRXa35d6K4+\n" +
+        "qX3fmUTiX43zUGAWvm+2vSuC4R+dsj5uyrYtZ5NFh+BRUBEcwVYy6IhHSTSECt2h\n" +
+        "OKTA4NYkvWchIAGnYSQxeLo=\n" +
         "-----END PRIVATE KEY-----\n" +
-        "\n" +
         "</key>\n" +
-        "\n" +
-        "<tls-crypt>\n" +
+        "<cert>\n" +
+        "-----BEGIN CERTIFICATE-----\n" +
+        "MIIDUjCCAjqgAwIBAgIQdsaTyAWoXIBa7izqbIL1HzANBgkqhkiG9w0BAQsFADAW\n" +
+        "MRQwEgYDVQQDDAtFYXN5LVJTQSBDQTAeFw0yMzA0MTgyMDAxMThaFw0yNTA3MjEy\n" +
+        "MDAxMThaMA8xDTALBgNVBAMMBHRlc3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw\n" +
+        "ggEKAoIBAQC/81Qn1YuRpVZj9eBlkeLfdk0NDfTnSVJad9bQSj5uMBxhJ1UQvQOc\n" +
+        "iwXZyH8/3uzW7b8ELnevIQHgmcHDNN0nLwYiTI97RH7YVFIgcljivjsrUretyMDI\n" +
+        "ReFxpH5fv+tDNTh1C46gFJTw92jxYtKmb2AWfM5y4ROwOInFx7y8vjNSmnkCo370\n" +
+        "iRV5rJOz2C22yUuaBBX270ktzkCoyXvDONGCotgFfKa2fPHbLFYTVCgipz5PgZre\n" +
+        "1NEn1i0dHeoRxBQfG4FIPGNSvFiHzGXDlODVqr7he361IwDoWrFgBwUNF5J36hEv\n" +
+        "Tsmopg95oIM2iAUqxPIxhn1yqq7GthVbAgMBAAGjgaIwgZ8wCQYDVR0TBAIwADAd\n" +
+        "BgNVHQ4EFgQUrLCakqn4h2kXvvRpsxFqRZ1jkq4wUQYDVR0jBEowSIAU9SJbk2ub\n" +
+        "7NJDuqWApFo890Qvq2ahGqQYMBYxFDASBgNVBAMMC0Vhc3ktUlNBIENBghRMmhhH\n" +
+        "bRLBOV666QGkS/opeMY78jATBgNVHSUEDDAKBggrBgEFBQcDAjALBgNVHQ8EBAMC\n" +
+        "B4AwDQYJKoZIhvcNAQELBQADggEBALwY65r2YzFJZbFwUmva/RHhD0S1ouZ6MtNv\n" +
+        "ovHNC2p7PfG02nlyc2XIuH2LJLwcyoHFy+AEtOWhKo+bV3k2asisopEMbXFm0hqp\n" +
+        "cdPDt17M6vtMMvGJfaMonIMlRCq5++wl6imfzo/Oerfp7oNT9T3XDqtjoCF0+DyI\n" +
+        "24qdKVJqbzjcwq5P0lyD9pRmoOp7JXzFp97qWWHbFLnsSEipC9BQDPu91xzdQqI2\n" +
+        "iu3QsWGbYx+yLNTfzruc2wA/DkGEvZdtuPa2RlRkqIrtmB2oGBMGnWA/BQPEO4ok\n" +
+        "rUkojZedQ/VgDIPuEtsaI1XXjqPrtoYYyDrK9LJN265EQ2VER1w=\n" +
+        "-----END CERTIFICATE-----\n" +
+        "</cert>\n" +
+        "<ca>\n" +
+        "-----BEGIN CERTIFICATE-----\n" +
+        "MIIDSzCCAjOgAwIBAgIUTJoYR20SwTleuukBpEv6KXjGO/IwDQYJKoZIhvcNAQEL\n" +
+        "BQAwFjEUMBIGA1UEAwwLRWFzeS1SU0EgQ0EwHhcNMjMwNDE4MTk0MTI3WhcNMzMw\n" +
+        "NDE1MTk0MTI3WjAWMRQwEgYDVQQDDAtFYXN5LVJTQSBDQTCCASIwDQYJKoZIhvcN\n" +
+        "AQEBBQADggEPADCCAQoCggEBAM11Q4QSlfEMuOQa6cR9+AIJPiLU2KavFRg49LoD\n" +
+        "Yza4I1xB05XG81GkWGzdz1E/wL2C5e9mqerhHxtaJkHBZLysAsmScw9MG4Exq1oK\n" +
+        "9F6VjfNktQq2Mp1YMGI9ZJwpMuN1wwUoOCBYciyElwq0HYl0Nvst+Z7XxgOrEIWR\n" +
+        "Sg+wK57uW7L6RtR9dOD5qVMhVZbCWVn9nupCpOg5PS0Ysn/69/5m5ey5Pao95mG8\n" +
+        "8xZnMTxudZvgclYs/BsHvwKDzMiqlJ/n7N+J0qMZnbgNA8giqVR+di1c3P3Xny7Y\n" +
+        "Z2+FY5frpRCIpjo+K7t5yPNPhU/uCL9LmLmYNSCwgT/QprECAwEAAaOBkDCBjTAM\n" +
+        "BgNVHRMEBTADAQH/MB0GA1UdDgQWBBT1IluTa5vs0kO6pYCkWjz3RC+rZjBRBgNV\n" +
+        "HSMESjBIgBT1IluTa5vs0kO6pYCkWjz3RC+rZqEapBgwFjEUMBIGA1UEAwwLRWFz\n" +
+        "eS1SU0EgQ0GCFEyaGEdtEsE5XrrpAaRL+il4xjvyMAsGA1UdDwQEAwIBBjANBgkq\n" +
+        "hkiG9w0BAQsFAAOCAQEAupEbeJS5KMlA9JkIaU8voowoOJzvzDYMDikRXofKKrS8\n" +
+        "pwbduqeQPIB6mFwpmFl5+OfBFGgjc6kqNOaFjJ4hQkWAq3RuHGrZvMlqcEmerogu\n" +
+        "OFMYqyihrw5Mx0H7yLfALrDdCtd+/SaAV8XsWU9plwB+ZS4t9PcHq8eTH/a+dTMa\n" +
+        "DukLqKKLWZl1m+uUEajx0qP9dV3Exm+2kM+NGrvoR0P/CEZp/Uq/UIVfhJyOyT7B\n" +
+        "tkFaBc537OZ0OWE0fVLefNgoVJfne/RmEikNirJ76VMnkaU/D2IdsMye4xVonZSU\n" +
+        "iybHTLTjBN5O+5Hv2mzfmz0I8F6zjSOaZpqdOarjwg==\n" +
+        "-----END CERTIFICATE-----\n" +
+        "</ca>\n" +
+        "key-direction 1\n" +
+        "<tls-auth>\n" +
+        "#\n" +
+        "# 2048 bit OpenVPN static key\n" +
+        "#\n" +
         "-----BEGIN OpenVPN Static key V1-----\n" +
-        "f2a6a6bdd71f2bd3dc4a4c03745ddc1c\n" +
-        "2b5dcfc4e2fe38e5ba646c252f7a2db3\n" +
-        "dbf5d15da101f2ab30463f2eef3f4ff3\n" +
-        "1fed800f38fc25462ff85a630962eccf\n" +
-        "42ec68f97c91995c5443e99a82e6671c\n" +
-        "7139a0deff0b8b4655c545d7c55f48b5\n" +
-        "c817410da9081dd55488f56ca7bc771c\n" +
-        "a8662b13ee69e4791029f3d20e1f79de\n" +
-        "255329b922b0dca06b241c795c94fb17\n" +
-        "ef8e9d309d78ee8271d791d540604d3d\n" +
-        "77ad38f34331c59a4d2ac17976c43287\n" +
-        "64fe9b45384ed611ffb99e2b6425d245\n" +
-        "b89d2a92c80d8252953a34be5ceb1104\n" +
-        "b9cd8c51217a506fd7cf098326417a17\n" +
-        "14400ecacb9bcddccd7cf6111615051c\n" +
-        "c3abcb7c515cdd302b75bcafa8e6ed28\n" +
+        "011d612735696633fdfab2a4effa6db9\n" +
+        "404575e168c61fbccf0072360250fc40\n" +
+        "53c00a453829455824052f711d57fb89\n" +
+        "5bcc598f3acecc60272b88d839f6a970\n" +
+        "ed02a91c69448fb927fc83ec15b2989a\n" +
+        "7791ef8a5409b98c364914b5fabcfd9f\n" +
+        "285a87d712e2f4b2849d32adcd8c6ca9\n" +
+        "71aea74aaec127bf6acd03b5ed12a4ea\n" +
+        "623813a737599552921826e88af5dfaa\n" +
+        "a0ffcb3226295675de5a6e46d5c7bc10\n" +
+        "30aa2540a9dbe669f947fd7f72d2efeb\n" +
+        "a511a7545bf6dd9aa171881b71c7628c\n" +
+        "321297efe847c990e032f3f45ec52f52\n" +
+        "064b9ef5db43885030e6fd91a39b9790\n" +
+        "73c85e5f0b9d5d1a4e70a35963971223\n" +
+        "4ebcabe57d0f0b7ef1448e54c1fd7162\n" +
         "-----END OpenVPN Static key V1-----\n" +
-        "</tls-crypt>"
+        "</tls-auth>\n" +
+        "\n" +
+        "redirect-gateway def1"
 val ovpnConfig1 = OpenVPNConfig(
     name = "OVPN Config",
-    host = "5.23.52.159",
+    host = "5.2.5.1",
     port = 443,
     type = "tcp-client",
     cipher = "AES-256-CBC",

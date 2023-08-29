@@ -14,6 +14,7 @@ import com.tim.basevpn.delegate.StateDelegate
 import com.tim.basevpn.state.ConnectionState
 import com.tim.basevpn.utils.sendCallback
 import com.tim.notification.DefaultVpnServiceNotification
+import com.tim.notification.timer.DisconnectTimer
 import com.tim.openvpn.OpenVPNThreadv3
 import com.tim.openvpn.OpenVPNThreadv3.VPNSERVICE_TUN
 import com.tim.openvpn.VpnStatus
@@ -23,9 +24,14 @@ import com.tim.openvpn.model.CIDRIP
 import com.tim.openvpn.utils.NetworkSpace
 import com.tim.openvpn.utils.NetworkSpace.IpAddress
 import com.tim.openvpn.utils.NetworkUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.UnknownHostException
+import java.util.concurrent.TimeUnit
 
 class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
 
@@ -42,6 +48,16 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
     private var management: OpenVPNThreadv3? = null
     private val stateCallback by StateDelegate()
     private var stateCached: ConnectionState = ConnectionState.DISCONNECTED
+    private val disconnectTimer = DisconnectTimer(
+        updateAction = { remaining ->
+            notificationHelper.updateNotification(
+                notificationHelper.createNotification(remaining)
+            )
+        },
+        disconnectAction = {
+            stopOpenVPN()
+        }
+    )
 
 
     private lateinit var config: OpenVPNConfig
@@ -50,9 +66,7 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
 
         override fun startVPN(configuration: VpnConfiguration<*>) {
             config = configuration.data as OpenVPNConfig
-            Thread {
-                startOpenVPN()
-            }.start()
+            startOpenVPN(configuration.timeToDisconnect)
         }
 
         override fun stopVPN() {
@@ -101,30 +115,37 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
         super.onRevoke()
     }
 
-    private fun startOpenVPN() {
+    private var job: Job? = null
+
+    private fun startOpenVPN(timeToDisconnect: Long? = null) {
         VpnStatus.log("startOpenVPN")
-        notificationHelper.start()
+        if (stateCached == ConnectionState.DISCONNECTED) {
+            if (timeToDisconnect != null) {
+                disconnectTimer.start(timeToDisconnect)
+            }
+            notificationHelper.start()
 
-        management = OpenVPNThreadv3(
-            this,
-            config.configuration ?: config.buildConfig()
-        )
-        VpnStatus.log("OpenVpnManagementThread init")
-
-        synchronized(mProcessLock) {
-            mProcessThread = Thread(management, "OpenVPNProcessThread")
-            mProcessThread?.start()
+            management = OpenVPNThreadv3(
+                this,
+                config.configuration ?: config.buildConfig()
+            )
+            VpnStatus.log("OpenVpnManagementThread init")
+            // TODO avoid global scope in next release
+            job = GlobalScope.launch(Dispatchers.IO) {
+                management!!.run()
+            }
+            //synchronized(mProcessLock) {
+            /*mProcessThread = Thread(management, "OpenVPNProcessThread")
+            mProcessThread?.start()*/
+            //}
+            VpnStatus.log("processThread init")
         }
-        VpnStatus.log("processThread init")
     }
 
     private fun stopOpenVPN() {
         VpnStatus.log("stopOpenVPN")
 
-        notificationHelper.stop()
         management?.stopVPN()
-        forceStopOpenVpnProcess()
-        management = null
     }
 
     /**
@@ -185,7 +206,10 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
                     // If it looks like IPv6 ignore error
                     if (!dnsList.get(0)
                             .contains(":")
-                    ) OpenVPNLogger.e("OpenVPNService", "Error parsing DNS Server IP: ${dnsList.get(0)}")
+                    ) OpenVPNLogger.e(
+                        "OpenVPNService",
+                        "Error parsing DNS Server IP: ${dnsList.get(0)}"
+                    )
                 }
             }
 
@@ -235,9 +259,9 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
             //mRoutes.addIP(CIDRIP(ipAddr, netMask), false) // todo check
         }
         //if (mProfile.mAllowLocalLAN) { // todo check
-            for (net in NetworkUtils.getLocalNetworks(connectivityManager, true)) {
-                addRoutev6(net, false)
-            }
+        for (net in NetworkUtils.getLocalNetworks(connectivityManager, true)) {
+            addRoutev6(net, false)
+        }
         //}
     }
 
@@ -283,14 +307,14 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
                     builder.addRoute(route.getIPv4Address(), route.networkMask)
                 }
             } catch (ia: java.lang.IllegalArgumentException) {
-                OpenVPNLogger.e("OpenVPNService","Error: $route ${ia.localizedMessage}")
+                OpenVPNLogger.e("OpenVPNService", "Error: $route ${ia.localizedMessage}")
             }
         }
         for (route6 in positiveIPv6Routes) {
             try {
                 builder.addRoute(route6.getIPv6Address(), route6.networkMask)
             } catch (ia: java.lang.IllegalArgumentException) {
-                OpenVPNLogger.e("OpenVPNService","Error: $route6 ${ia.localizedMessage}")
+                OpenVPNLogger.e("OpenVPNService", "Error: $route6 ${ia.localizedMessage}")
             }
         }
     }
@@ -303,21 +327,22 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
     }
 
     private fun forceStopOpenVpnProcess() {
-        synchronized(mProcessLock) {
-            if (mProcessThread != null) {
-                mProcessThread?.interrupt()
-                try {
-                    Thread.sleep(1000)
-                } catch (e: InterruptedException) {
-                    //ignore
-                }
+        //synchronized(mProcessLock) {
+        /*if (mProcessThread != null) {
+            mProcessThread?.interrupt()
+            try {
+                Thread.sleep(1000)
+            } catch (e: InterruptedException) {
+                //ignore
             }
-        }
+            mProcessThread = null
+        }*/
+        //}
     }
 
 
     private val mProcessLock = Any()
-    private var mProcessThread: Thread? = null
+    //private var mProcessThread: Thread? = null
 
     private var mtu: Int? = null
     private var domain: String? = null
@@ -346,7 +371,10 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
         val gatewayIP = IpAddress(CIDRIP(gateway!!, 32), false)
 
         if (localIp == null) {
-            OpenVPNLogger.e("OpenVPNService", "Local IP address unset and received. Neither pushed server config nor local config specifies an IP addresses. Opening tun device is most likely going to fail.")
+            OpenVPNLogger.e(
+                "OpenVPNService",
+                "Local IP address unset and received. Neither pushed server config nor local config specifies an IP addresses. Opening tun device is most likely going to fail."
+            )
             return
         }
         val localNet = IpAddress(localIp, true)
@@ -419,7 +447,12 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
         get() = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     override fun openvpnStopped() {
-        stopOpenVPN()
+        disconnectTimer.cancel()
+        notificationHelper.stop()
+        forceStopOpenVpnProcess()
+        job?.cancel()
+        job = null
+        management = null
     }
 
     override fun updateState(state: ConnectionState) {

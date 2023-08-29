@@ -26,7 +26,7 @@ internal class GuardedProcess(private val cmd: List<String?>) : CoroutineScope {
      *
      * @param onRestartCallback колбэк, вызываемый при перезапуске процесса.
      */
-    fun start(onRestartCallback: (() -> Boolean)? = null) {
+    fun start(onRestartCallback: (() -> Unit)? = null) {
         processJob = launch {
             try {
                 //while (isActive) {

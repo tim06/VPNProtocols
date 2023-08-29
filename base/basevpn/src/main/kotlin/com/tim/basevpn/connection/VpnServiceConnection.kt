@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 
@@ -31,28 +33,30 @@ abstract class VpnServiceConnection(
     }
 ) : CoroutineScope by coroutineScope {
 
+    private val mutex = Mutex()
     private var serviceConnection: ServiceConnection? = null
     private var vpnService: IVPNService? = null
-
-    init {
-        if (stateListener != null) {
-            launch {
-                attachStateListener()
-                    .flowOn(Dispatchers.IO)
-                    .collect {
-                        stateListener.invoke(it)
-                    }
-            }
-        }
-    }
 
     fun start(
         config: IVpnConfiguration,
         allowedApps: Set<String> = emptySet(),
         notificationClassName: String? = null
-    ) = launch {
-        getService()?.apply {
-            startVPN(
+    ) {
+        launch {
+            val service = getService()
+            if (service != null) {
+                if (stateListener != null) {
+                    attachStateListener(service)
+                        .flowOn(Dispatchers.IO)
+                        .collect {
+                            stateListener.invoke(it)
+                        }
+                }
+            }
+        }
+
+        launch {
+            getService()?.startVPN(
                 VpnConfiguration(
                     data = config,
                     allowedApps = allowedApps,
@@ -65,6 +69,12 @@ abstract class VpnServiceConnection(
     fun stop() = launch {
         getService()?.apply {
             stopVPN()
+        }
+        if (serviceConnection != null) {
+            context.unbindService(serviceConnection!!)
+        }
+        if (vpnService != null) {
+            vpnService = null
         }
     }
 
@@ -90,8 +100,7 @@ abstract class VpnServiceConnection(
         vpnService = null
     }
 
-    private fun attachStateListener() = callbackFlow<ConnectionState> {
-        val serv = getService()
+    private fun attachStateListener(service: IVPNService) = callbackFlow<ConnectionState> {
         val listener = object : ConnectionListener() {
             override fun stateChanged(status: ConnectionState) {
                 trySend(status)
@@ -104,34 +113,37 @@ abstract class VpnServiceConnection(
                 rxTotal: Long
             ) = Unit
         }
-        serv?.registerCallback(listener)
+        service.registerCallback(listener)
+        trySend(service.state)
 
         awaitClose {
-            serv?.unregisterCallback(listener)
+            service.unregisterCallback(listener)
         }
     }
 
-    private suspend fun getService() = suspendCancellableCoroutine<IVPNService?> { continuation ->
-        if (serviceConnection == null || vpnService == null) {
-            serviceConnection = object : ServiceConnection {
-                override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
-                    vpnService = IVPNService.Stub.asInterface(p1).also {
-                        continuation.resume(it)
+    private suspend fun getService() = mutex.withLock {
+        suspendCancellableCoroutine<IVPNService?> { continuation ->
+            if (serviceConnection == null || vpnService == null) {
+                serviceConnection = object : ServiceConnection {
+                    override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
+                        vpnService = IVPNService.Stub.asInterface(p1).also {
+                            continuation.resume(it)
+                        }
+                    }
+
+                    override fun onServiceDisconnected(p0: ComponentName?) {
+                        vpnService = null
+                        continuation.resume(null)
                     }
                 }
-
-                override fun onServiceDisconnected(p0: ComponentName?) {
-                    vpnService = null
-                    continuation.resume(null)
-                }
+                context.bindService(
+                    Intent(context, clazz),
+                    serviceConnection!!,
+                    Context.BIND_AUTO_CREATE
+                )
+            } else {
+                vpnService?.let { continuation.resume(it) }
             }
-            context.bindService(
-                Intent(context, clazz),
-                serviceConnection!!,
-                Context.BIND_AUTO_CREATE
-            )
-        } else {
-            vpnService?.let { continuation.resume(it) }
         }
     }
 

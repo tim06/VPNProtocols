@@ -1,15 +1,15 @@
-package com.tim.xtlsr
+package com.tim.openvpn.connection
 
 import android.content.Context
 import com.tim.basevpn.connection.VpnServiceConnection
 import com.tim.basevpn.state.ConnectionState
-import io.nekohasekai.sagernet.bg.VpnService
+import com.tim.openvpn.service.OpenVPNService
 
-class XTLSRVpnConnection(
+class OpenVPNVpnConnection(
     context: Context,
     stateListener: ((ConnectionState) -> Unit)? = null
 ) : VpnServiceConnection(
     context = context,
-    clazz = VpnService::class.java,
+    clazz = OpenVPNService::class.java,
     stateListener = stateListener
 )

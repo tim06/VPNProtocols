@@ -10,6 +10,7 @@ import android.os.Build
 import android.text.format.Formatter
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.tim.notification.timer.DisconnectTimer
 import com.tim.xtlsr.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
@@ -51,34 +52,23 @@ class ServiceNotification(
 
     var listenPostSpeed = true
 
-    private val initTime: Long = System.currentTimeMillis()
-    private val timer = timer(
-        name = "VPN Disconnect",
-        daemon = true,
-        initialDelay = 0,
-        period = 1000
-    ) {
-        val connectionAliveTime = TimeUnit.HOURS.toMillis(1)
-        val endTime = initTime + connectionAliveTime
-        val workRange = initTime..endTime
-        val now = System.currentTimeMillis()
-        if (now in workRange) {
+    private val disconnectTimer = DisconnectTimer(
+        updateAction = { remained ->
             // todo fix scope
             runOnMainDispatcher {
                 useBuilder {
-                    val remained = (endTime - now)
-                    it.setContentTitle("Time left: ${formatMilliseconds(remained)}")
+                    it.setContentTitle("Time left: $remained")
                 }
                 update()
             }
-        } else {
+        },
+        disconnectAction = {
             service.stopRunner(false)
         }
-    }
+    )
 
-    private fun formatMilliseconds(milliseconds: Long): String {
-        val format = SimpleDateFormat("mm:ss")
-        return format.format(Date(milliseconds))
+    init {
+        disconnectTimer.start()
     }
 
     suspend fun postNotificationSpeedUpdate(stats: SpeedDisplayData) {
@@ -144,7 +134,7 @@ class ServiceNotification(
         .setContentTitle(title)
         .setOnlyAlertOnce(true)
         .setContentIntent(SagerNet.configureIntent(service))
-        .setSmallIcon(R.drawable.ic_service_connected)
+        .setSmallIcon(R.drawable.ic_key)
         .setCategory(NotificationCompat.CATEGORY_SERVICE)
         .setPriority(if (visible) NotificationCompat.PRIORITY_LOW else NotificationCompat.PRIORITY_MIN)
 
@@ -218,7 +208,7 @@ class ServiceNotification(
     }
 
     fun destroy() {
-        timer.cancel()
+        disconnectTimer.cancel()
         listenPostSpeed = false
         (service as Service).stopForeground(true)
         service.unregisterReceiver(this)

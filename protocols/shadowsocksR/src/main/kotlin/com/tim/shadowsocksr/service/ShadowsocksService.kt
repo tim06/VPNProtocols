@@ -25,6 +25,11 @@ import com.tim.shadowsocksr.thread.GuardedProcess
 import com.tim.shadowsocksr.thread.ShadowsocksRThread
 import com.tim.shadowsocksr.thread.TrafficMonitorThread
 import com.tim.shadowsocksr.utils.TrafficMonitor
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Timer
 import java.util.TimerTask
 
@@ -71,18 +76,23 @@ class ShadowsocksService : VpnService() {
     private val binder = object : IVPNService.Stub() {
 
         override fun startVPN(configuration: VpnConfiguration<*>) {
-            config = configuration.data as ShadowsocksRVpnConfig
-            configuration.notificationClassName?.let { notificationClass ->
-                initNotification(notificationClass).run {
-                    start()
+            if (stateCached == ConnectionState.DISCONNECTED) {
+                updateState(ConnectionState.CONNECTING)
+                config = configuration.data as ShadowsocksRVpnConfig
+                configuration.notificationClassName?.let { notificationClass ->
+                    initNotification(notificationClass).run {
+                        start()
+                    }
                 }
+                allowedApps = configuration.allowedApps.toTypedArray()
+                start()
             }
-            allowedApps = configuration.allowedApps.toTypedArray()
-            start()
         }
 
         override fun stopVPN() {
-            stop()
+            if (stateCached == ConnectionState.CONNECTED) {
+                stop()
+            }
         }
 
         override fun getState(): ConnectionState = stateCached
@@ -96,7 +106,8 @@ class ShadowsocksService : VpnService() {
                             if (TrafficMonitor.updateRate()) {
                                 updateTrafficRate()
                                 notificationHelper?.run {
-                                    val received = TrafficMonitor.formatTraffic(TrafficMonitor.txRate)
+                                    val received =
+                                        TrafficMonitor.formatTraffic(TrafficMonitor.txRate)
                                     val send = TrafficMonitor.formatTraffic(TrafficMonitor.rxRate)
                                     val stat = "↓ $received    ↑ $send"
                                     updateNotification(createNotification(stat))
@@ -152,7 +163,6 @@ class ShadowsocksService : VpnService() {
         Log.d("ShadowsocksService", "start()")
 
         configWriter = ConfigWriter(config)
-
         TrafficMonitor.reset()
         trafficMonitorThread = TrafficMonitorThread(
             statPath = statPath,
@@ -162,8 +172,6 @@ class ShadowsocksService : VpnService() {
         ).also { monitor ->
             monitor.startThread()
         }
-        updateState(ConnectionState.CONNECTING)
-
         killProcesses()
         shadowsocksRThread = ShadowsocksRThread(
             protectPath = protectPath,
@@ -173,15 +181,17 @@ class ShadowsocksService : VpnService() {
         ).also {
             it.start()
         }
-
-        val fd = establish()
-        if (!sendFileDescriptor(fd)) {
-            Log.e("ShadowsocksService", "sendFd failed")
-            stop()
-            return
+        // TODO avoid global scope
+        GlobalScope.launch {
+            val fd = establish()
+            if (!sendFileDescriptor1(fd)) {
+                Log.e("ShadowsocksService", "sendFd failed")
+                stop()
+                return@launch
+            }
+            runTunnelProcesses()
+            updateState(ConnectionState.CONNECTED)
         }
-        runTunnelProcesses()
-        updateState(ConnectionState.CONNECTED)
     }
 
     private fun stop() {
@@ -239,7 +249,12 @@ class ShadowsocksService : VpnService() {
         ) ?: emptyList()
         tun2socksProcess = GuardedProcess(command).apply {
             start {
-                sendFileDescriptor(descriptor)
+                if (stateCached != ConnectionState.DISCONNECTED) {
+                    // TODO avoid global scope
+                    GlobalScope.launch {
+                        sendFileDescriptor1(descriptor)
+                    }
+                }
             }
         }
         return descriptor
@@ -259,6 +274,17 @@ class ShadowsocksService : VpnService() {
     private fun updateState(newState: ConnectionState) {
         stateCached = newState
         stateCallback.sendCallback { it.stateChanged(newState) }
+    }
+
+    private suspend fun sendFileDescriptor1(fd: Int): Boolean = withContext(Dispatchers.IO) {
+        var success = false
+        repeat(5) {
+            if (!success) {
+                delay(1000)
+                success = Native.sendfd(fd, "$dataDir/sock_path") != -1
+            }
+        }
+        success
     }
 
     private fun sendFileDescriptor(fd: Int): Boolean {
