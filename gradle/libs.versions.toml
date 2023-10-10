@@ -30,7 +30,7 @@ junit = "4.13.2"
 android-junit = "1.1.3"
 
 vpnprotocols-version = "1.0.14"
-vpnprotocols-version-test = "1.0.24"
+vpnprotocols-version-test = "1.0.26"
 
 espresso-core = "3.5.1"
 

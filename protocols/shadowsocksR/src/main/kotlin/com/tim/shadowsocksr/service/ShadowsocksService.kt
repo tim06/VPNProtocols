@@ -33,7 +33,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.Inet6Address
-import java.net.InetAddress
 import java.util.Timer
 import java.util.TimerTask
 
@@ -58,7 +57,7 @@ class ShadowsocksService : VpnService() {
     private var configWriter: ConfigWriter? = null
 
     private val stateCallback by StateDelegate()
-    private var stateCached: ConnectionState = ConnectionState.DISCONNECTED
+    private var stateCached: ConnectionState = ConnectionState.READYFORCONNECT
 
     private var shadowsocksRThread: ShadowsocksRThread? = null
     private var sslocalProcess: GuardedProcess? = null
@@ -80,7 +79,7 @@ class ShadowsocksService : VpnService() {
     private val binder = object : IVPNService.Stub() {
 
         override fun startVPN(configuration: VpnConfiguration<*>) {
-            if (stateCached == ConnectionState.DISCONNECTED) {
+            if (stateCached == ConnectionState.DISCONNECTED || stateCached == ConnectionState.READYFORCONNECT) {
                 updateState(ConnectionState.CONNECTING)
                 config = configuration.data as ShadowsocksRVpnConfig
                 configuration.notificationClassName?.let { notificationClass ->

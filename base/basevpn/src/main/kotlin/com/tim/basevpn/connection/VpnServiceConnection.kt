@@ -13,7 +13,6 @@ import com.tim.basevpn.state.ConnectionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
@@ -66,9 +65,15 @@ abstract class VpnServiceConnection(
         }
     }
 
-    fun stop() = launch {
-        getService()?.apply {
-            stopVPN()
+    fun stop() {
+        if (vpnService != null) {
+            vpnService?.stopVPN()
+        } else {
+            launch {
+                getService()?.apply {
+                    stopVPN()
+                }
+            }
         }
         if (serviceConnection != null) {
             context.unbindService(serviceConnection!!)
@@ -92,10 +97,14 @@ abstract class VpnServiceConnection(
                 context.unbindService(it)
             }
         }
+        if (forceStop) {
+            stateListener?.invoke(ConnectionState.DISCONNECTING)
+            stateListener?.invoke(ConnectionState.DISCONNECTED)
+        }
         if (needStopService || forceStop) {
             context.stopService(Intent(context, clazz))
         }
-        cancel()
+        //cancel()
         serviceConnection = null
         vpnService = null
     }
@@ -114,7 +123,10 @@ abstract class VpnServiceConnection(
             ) = Unit
         }
         service.registerCallback(listener)
-        trySend(service.state)
+        service.state?.let {
+            trySend(it)
+        }
+
 
         awaitClose {
             service.unregisterCallback(listener)
