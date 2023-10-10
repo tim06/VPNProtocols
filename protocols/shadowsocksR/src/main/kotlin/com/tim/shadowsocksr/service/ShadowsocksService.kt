@@ -3,7 +3,9 @@ package com.tim.shadowsocksr.service
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.net.IpPrefix
 import android.net.VpnService
+import android.os.Build
 import android.os.IBinder
 import android.os.ParcelFileDescriptor
 import android.os.RemoteException
@@ -30,6 +32,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.net.Inet6Address
+import java.net.InetAddress
 import java.util.Timer
 import java.util.TimerTask
 
@@ -232,6 +236,19 @@ class ShadowsocksService : VpnService() {
                 }
 
             addRoute(config.dnsAddress.orEmpty(), DNS_PREFIX_LENGTH)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                runCatching {
+                    val anyIpv6 = Inet6Address.getByAddress(
+                        "::",
+                        byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                        0
+                    )
+                    excludeRoute(IpPrefix(anyIpv6, 0))
+                }.onFailure {
+                    Log.e("qweqwe: ", "ipv6 setup error: $it")
+                }
+            }
 
             allowedApps?.forEach {
                 addAllowedApplication(it)

@@ -1,2 +1,9 @@
 -keep class org.strongswan.** { *; }
 -keep class com.tim.ikev2.** { *; }
+-keep class com.tim.shadowsocksr.Native { *; }
+-keep class com.tim.shadowsocksr.ShadowsocksRVpnConfig { *; }
+-keep class com.tim.shadowsocksr.delegate.DelegateKt { *; }
+-keep class com.tim.basevpn.delegate.VPNRunner { *; }
+-keep class com.tim.basevpn.delegate.StateDelegate { *; }
+-keep class * extends android.os.Binder { *; }
+-keep class com.tim.notification.NotificationHelper { *; }
