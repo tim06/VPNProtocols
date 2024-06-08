@@ -5,3 +5,6 @@ plugins {
 android {
     namespace = "com.tim.notification"
 }
+dependencies {
+    implementation(libs.core)
+}

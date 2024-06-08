@@ -5,7 +5,9 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.pm.ServiceInfo
 import android.os.Build
+import androidx.core.app.ServiceCompat
 
 class DefaultVpnServiceNotification(
     private val service: Service,
@@ -14,12 +16,17 @@ class DefaultVpnServiceNotification(
 
     override fun start() {
         val notification = createNotification("")
-        service.startForeground(NOTIFICATION_ID, notification)
+        ServiceCompat.startForeground(
+            service,
+            NOTIFICATION_ID,
+            notification,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST
+        )
     }
 
     //@Suppress("DEPRECATION")
     override fun stop() {
-        service.stopForeground(true)
+        ServiceCompat.stopForeground(service, ServiceCompat.STOP_FOREGROUND_REMOVE)
         notificationManager.cancel(NOTIFICATION_ID)
     }
 

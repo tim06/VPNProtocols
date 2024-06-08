@@ -26,5 +26,8 @@ class SelectProtocolFragment : Fragment(R.layout.select_protocol_fragment) {
         selectProtocolFragmentBinding.xtlsButton.setOnClickListener {
             findNavController().navigate(R.id.action_selectProtocolFragment_to_XTLSServiceFragment)
         }
+        selectProtocolFragmentBinding.xrayNgButton.setOnClickListener {
+            findNavController().navigate(R.id.action_selectProtocolFragment_to_xrayNgFragment)
+        }
     }
 }

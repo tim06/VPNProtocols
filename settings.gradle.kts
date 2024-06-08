@@ -27,5 +27,7 @@ include(
     ":protocols:openvpn",
     ":protocols:shadowsocksR",
     ":protocols:ikev2",
-    ":protocols:xtlsr"
+    //":protocols:xtlsr",
+    ":protocols:xrayNg",
+    //":protocols:xrayNeko",
 )

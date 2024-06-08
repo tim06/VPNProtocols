@@ -34,7 +34,7 @@ import com.tim.vpnprotocols.R
 import com.tim.vpnprotocols.databinding.ShadowsocksFragmentLayoutBinding
 import com.tim.vpnprotocols.notification.VpnNotificationImpl
 import com.tim.vpnprotocols.view.shadowsocksr.VpnActivityResultContract
-import com.tim.xtlsr.XTLSRVpnConfig
+/*import com.tim.xtlsr.XTLSRVpnConfig
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.bg.VpnService
@@ -42,7 +42,7 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.group.RawUpdater
+import io.nekohasekai.sagernet.group.RawUpdater*/
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -129,7 +129,7 @@ class XTLSServiceFragment : Fragment(R.layout.shadowsocks_fragment_layout) {
                 stopVpn()
             }
         }
-        val intent = Intent(
+        /*val intent = Intent(
             requireContext(),
             VpnService::class.java
         ).apply {
@@ -138,18 +138,18 @@ class XTLSServiceFragment : Fragment(R.layout.shadowsocks_fragment_layout) {
                 NOTIFICATION_IMPL_CLASS_KEY,
                 VpnNotificationImpl::class.java.name
             )
-        }
-        lifecycleScope.launch(Dispatchers.IO) {
+        }*/
+        /*lifecycleScope.launch(Dispatchers.IO) {
             requireContext().bindService(
                 intent,
                 serviceConnection,
                 Context.BIND_AUTO_CREATE
             )
-        }
+        }*/
     }
 
     private fun startVpn() {
-        vpnService?.startVPN(
+        /*vpnService?.startVPN(
             VpnConfiguration(
                 XTLSRVpnConfig(
                     host = "",
@@ -159,13 +159,13 @@ class XTLSServiceFragment : Fragment(R.layout.shadowsocks_fragment_layout) {
                 ),
                 emptySet()
             )
-        )
+        )*/
     }
 
     private fun stopVpn() {
         vpnService?.stopVPN()
         requireContext().unbindService(serviceConnection)
-        requireContext().stopService(Intent(requireContext(), VpnService::class.java))
+        //requireContext().stopService(Intent(requireContext(), VpnService::class.java))
     }
 
     private fun updateState(state: ConnectionState) {

@@ -11,6 +11,10 @@ android {
             enable = true
         }
     }
+
+    java {
+        toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    }
 }
 
 dependencies {
@@ -20,7 +24,7 @@ dependencies {
     api(libs.tim.notification)
     implementation(libs.kotlin.coroutines.core)
 
-    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.work:work-runtime-ktx:2.8.1")
@@ -32,9 +36,9 @@ dependencies {
         exclude(group = "androidx.appcompat")
     }
 
-    implementation("androidx.room:room-runtime:2.5.1")
-    kapt("androidx.room:room-compiler:2.5.1")
-    implementation("androidx.room:room-ktx:2.5.1")
+    implementation("androidx.room:room-runtime:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
     implementation("com.github.MatrixDev.Roomigrant:RoomigrantLib:0.3.4")
     kapt("com.github.MatrixDev.Roomigrant:RoomigrantCompiler:0.3.4")
     implementation("com.google.code.gson:gson:2.9.0")

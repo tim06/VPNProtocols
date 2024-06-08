@@ -57,5 +57,12 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:text="XTLS-Reality" />
+
+        <Button
+            android:id="@+id/xrayNgButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="XRayNG" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -41,18 +41,7 @@ abstract class VpnServiceConnection(
         allowedApps: Set<String> = emptySet(),
         notificationClassName: String? = null
     ) {
-        launch {
-            val service = getService()
-            if (service != null) {
-                if (stateListener != null) {
-                    attachStateListener(service)
-                        .flowOn(Dispatchers.IO)
-                        .collect {
-                            stateListener.invoke(it)
-                        }
-                }
-            }
-        }
+        attachListener()
 
         launch {
             getService()?.startVPN(
@@ -85,6 +74,21 @@ abstract class VpnServiceConnection(
 
     suspend fun isConnected(): Boolean {
         return getService()?.let { it.state == ConnectionState.CONNECTED } ?: false
+    }
+
+    fun attachListener() {
+        launch {
+            val service = getService()
+            if (service != null) {
+                if (stateListener != null) {
+                    attachStateListener(service)
+                        .flowOn(Dispatchers.IO)
+                        .collect {
+                            stateListener.invoke(it)
+                        }
+                }
+            }
+        }
     }
 
     fun stopServiceIfNeed(forceStop: Boolean = false) {

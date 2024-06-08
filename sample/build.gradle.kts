@@ -12,11 +12,20 @@ android {
         versionName = "0.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        splits.abi {
+            reset()
+            include(
+                "arm64-v8a",
+                "armeabi-v7a",
+                "x86_64",
+                "x86"
+            )
+        }
     }
 
     signingConfigs {
         create("release") {
-            com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir).apply {
+            com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir, providers).apply {
                 storePassword = getProperty("storePwd")
                 keyAlias = getProperty("keyAlias")
                 keyPassword = getProperty("keyPwd")
@@ -51,11 +60,25 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    splits {
+        abi {
+            isEnable = true
+            isUniversalApk = false
+        }
+    }
+
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("libs")
+        }
+    }
 }
 
 dependencies {
     // xtls
-    implementation(files("libs/libcore.aar"))
+    //implementation(files("libs/libcore.aar"))
+    implementation(files("libs/libv2ray.aar"))
 
     //Modules
     //implementation(libs.tim.openvpn)
@@ -63,7 +86,8 @@ dependencies {
     implementation(project(":protocols:openvpn"))
     implementation(project(":protocols:shadowsocksR"))
     implementation(project(":protocols:ikev2"))
-    implementation(project(":protocols:xtlsr"))
+    //implementation(project(":protocols:xtlsr"))
+    implementation(project(":protocols:xrayNg"))
 
     //AndroidX
     implementation(libs.androidx.core)
@@ -98,4 +122,7 @@ dependencies {
     //Test
     testImplementation(libs.test.junit)
     androidTestImplementation(libs.test.android.junit)
+
+    // temp
+    implementation("com.google.code.gson:gson:2.9.0")
 }
