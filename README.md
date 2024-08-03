@@ -2,47 +2,43 @@
 Android client implementation of VPN. Supported protocols:
 - [x] OpenVPN
 - [x] ShadowsocksR
+- [x] XrayNg — V2RayNg implementation
+- [x] ~~Ikev2 Deprecated~~
 - [ ] WireGuard
 - [ ] AnyConnect
 
 # Usage
 Add library with Gradle
 ```
-# Groovy
-implementation 'io.github.tim06:openvpn:1.0.14'
-implementation 'io.github.tim06:shadowsocksr:1.0.14'
+implementation("io.github.tim06:xrayNg:1.1.0")
+implementation("io.github.tim06:openvpn:1.1.0")
+implementation("io.github.tim06:shadowsocksr:1.1.0")
+```
+Easy to use
+```
+# XrayNg
+val xrayConfiguration: String = "full_xray_configuration"
+XRayNgService.startService(
+  context = context,
+  config = xrayConfiguration
+)
 
-# Kotlin
-implementation("io.github.tim06:openvpn:1.0.14")
-implementation("io.github.tim06:shadowsocksr:1.0.14")
-```
-Easy to use with delegate access
-```
-import com.tim.openvpn.delegate.openVPN
-# or
-import com.tim.shadowsocksr.delegate.shadowsocksR
-
-# Activity
-val openvpn by openVPN(OpenVPNConfig()) { state -> }
-val shadowsocksR by shadowsocksR(ShadowsocksRVpnConfig()) { state -> }
-
-openvpn.start() / openvpn.stop()
-shadowsocksR.start() / shadowsocksR.stop()
-```
-# Tested server part
-```
-# OpenVPN
-wget https://git.io/vpn -O openvpn-install.sh
-sudo chmod +x openvpn-install.sh
-sudo bash openvpn-install.sh
-TCP / 443
+# Openvpn
+val openVpnConfiguration: String = "full_openvpn_configuration"
+OpenVPNService.startService(
+  context = context,
+  config = OpenVPNConfig(configuration = configuration)
+)
 
 # ShadowsocksR
-wget --no-check-certificate https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocksR.sh
-chmod +x shadowsocksR.sh
-./shadowsocksR.sh 2>&1 | tee shadowsocksR.log
+val shadowsocksRConfiguration: ShadowsocksRVpnConfig = ShadowsocksRVpnConfig()
+ShadowsocksRService.startService(
+  context = context,
+  config = shadowsocksRConfiguration
+)
 ```
 
 # Thanks
+- [xray-core](https://github.com/XTLS/Xray-core/)
 - [ics-openvpn](https://github.com/schwabe/ics-openvpn/)
 - [shadowsocksR](https://github.com/shadowsocksrr/shadowsocksr-libev/)
