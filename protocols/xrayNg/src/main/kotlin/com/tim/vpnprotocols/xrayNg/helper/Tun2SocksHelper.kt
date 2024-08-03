@@ -1,28 +1,39 @@
 package com.tim.vpnprotocols.xrayNg.helper
 
+import com.tim.basevpn.logger.Logger
 import com.tim.vpnprotocols.xrayNg.XRayNgService.Companion.MTU
 import com.tim.vpnprotocols.xrayNg.XRayNgService.Companion.PRIVATE_VLAN4_ROUTER
 import com.tim.vpnprotocols.xrayNg.XRayNgService.Companion.PRIVATE_VLAN6_ROUTER
 import com.tim.vpnprotocols.xrayNg.file.FilesDir
 import com.tim.vpnprotocols.xrayNg.file.Tun2SocksFile
-import com.tim.vpnprotocols.xrayNg.log.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
+import java.io.File
 import java.io.FileDescriptor
 
 internal class Tun2SocksHelper(
-    private val filesDir: FilesDir,
+    private val filesDir: File,
     private val tun2SocksFile: Tun2SocksFile,
-    private val fdSendHelper: FdSendHelper,
+    private val fdSendHelper: FdSendHelper?,
     private val coroutineScope: CoroutineScope
 ) {
 
-    private val logger: Logger by lazy {
-        Logger("Tun2SocksHelper")
-    }
+    private var scope: CoroutineScope? = null
+    private var logger: Logger? = null
     private var process: Process? = null
+
+    fun initDependencies() {
+        logger = Logger("Tun2SocksHelper")
+        scope = coroutineScope + Dispatchers.IO
+    }
+
+    fun clearDependencies() {
+        logger = null
+        process = null
+    }
 
     internal fun startTun2socks(fd: FileDescriptor) {
         val socksPort = 10808
@@ -49,39 +60,39 @@ internal class Tun2SocksHelper(
         val proBuilder = ProcessBuilder(cmd)
         proBuilder.redirectErrorStream(true)
         process = proBuilder
-            .directory(filesDir.file)
+            .directory(filesDir)
             .start()
-        coroutineScope.launch(Dispatchers.IO) {
+        scope?.launch {
             try {
-                logger.d("check")
+                logger?.d("check")
                 val waitedValue = process?.waitFor()
                 if (waitedValue != 0) {
-                    logger.d(
+                    logger?.d(
                         "process error -> ${
                             process?.inputStream?.bufferedReader()?.readText()
                         }"
                     )
                 }
-                logger.d("exited")
+                logger?.d("exited")
                 if (isActive) {
-                    logger.d("restart")
+                    logger?.d("restart")
                     startTun2socks(fd)
                 }
             } catch (e: Exception) {
-                logger.d("process execution exception -> $e")
+                logger?.d("process execution exception -> $e")
             }
         }
 
-        fdSendHelper.sendFd(fd)
+        fdSendHelper?.sendFd(fd)
     }
 
     fun stop() {
         try {
-            logger.d("destroy")
+            logger?.d("stop()")
             process?.destroy()
             process = null
         } catch (e: Exception) {
-            logger.d("destroy error -> $e")
+            logger?.d("destroy error -> $e")
         }
     }
 }

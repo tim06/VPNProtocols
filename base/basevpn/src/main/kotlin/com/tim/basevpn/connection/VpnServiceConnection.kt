@@ -22,6 +22,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 abstract class VpnServiceConnection(
     private val context: Context,
@@ -44,13 +45,7 @@ abstract class VpnServiceConnection(
         attachListener()
 
         launch {
-            getService()?.startVPN(
-                VpnConfiguration(
-                    data = config,
-                    allowedApps = allowedApps,
-                    notificationClassName = notificationClassName
-                )
-            )
+            getService()?.startVPN()
         }
     }
 
@@ -137,30 +132,53 @@ abstract class VpnServiceConnection(
         }
     }
 
-    private suspend fun getService() = mutex.withLock {
+    private suspend fun getService(): IVPNService? = mutex.withLock {
         suspendCancellableCoroutine<IVPNService?> { continuation ->
             if (serviceConnection == null || vpnService == null) {
                 serviceConnection = object : ServiceConnection {
                     override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
-                        vpnService = IVPNService.Stub.asInterface(p1).also {
-                            continuation.resume(it)
+                        if (continuation.isActive) {
+                            try {
+                                vpnService = IVPNService.Stub.asInterface(p1)
+                                continuation.resume(vpnService)
+                            } catch (e: Exception) {
+                                continuation.resumeWithException(e)
+                            }
                         }
                     }
 
                     override fun onServiceDisconnected(p0: ComponentName?) {
-                        vpnService = null
-                        continuation.resume(null)
+                        if (continuation.isActive) {
+                            vpnService = null
+                            continuation.resume(null)
+                        }
                     }
                 }
-                context.bindService(
-                    Intent(context, clazz),
-                    serviceConnection!!,
-                    Context.BIND_AUTO_CREATE
-                )
+                if (continuation.isActive) {
+                    try {
+                        context.bindService(
+                            Intent(context, clazz),
+                            serviceConnection!!,
+                            Context.BIND_AUTO_CREATE
+                        )
+                    } catch (e: Exception) {
+                        continuation.resumeWithException(e)
+                    }
+                }
             } else {
-                vpnService?.let { continuation.resume(it) }
+                continuation.resume(vpnService)
+            }
+
+            continuation.invokeOnCancellation {
+                try {
+                    serviceConnection?.let { context.unbindService(it) }
+                } catch (e: Exception) {
+                    // Handle or log exception if needed
+                } finally {
+                    serviceConnection = null
+                    vpnService = null
+                }
             }
         }
     }
-
 }

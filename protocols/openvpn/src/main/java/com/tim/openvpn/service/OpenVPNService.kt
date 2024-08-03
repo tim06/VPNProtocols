@@ -1,104 +1,37 @@
 package com.tim.openvpn.service
 
-import android.app.NotificationManager
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
-import android.net.VpnService
 import android.os.*
-import com.tim.basevpn.IConnectionStateListener
-import com.tim.basevpn.IVPNService
-import com.tim.basevpn.configuration.VpnConfiguration
-import com.tim.basevpn.delegate.StateDelegate
+import androidx.lifecycle.lifecycleScope
+import com.tim.basevpn.singleProcess.ProtocolsVpnService
 import com.tim.basevpn.state.ConnectionState
-import com.tim.basevpn.utils.sendCallback
-import com.tim.notification.DefaultVpnServiceNotification
-import com.tim.notification.timer.DisconnectTimer
+import com.tim.basevpn.utils.currentProcess
 import com.tim.openvpn.OpenVPNThreadv3
 import com.tim.openvpn.OpenVPNThreadv3.VPNSERVICE_TUN
 import com.tim.openvpn.VpnStatus
 import com.tim.openvpn.configuration.OpenVPNConfig
 import com.tim.openvpn.log.OpenVPNLogger
 import com.tim.openvpn.model.CIDRIP
+import com.tim.openvpn.parser.parseConfiguration
 import com.tim.openvpn.utils.NetworkSpace
 import com.tim.openvpn.utils.NetworkSpace.IpAddress
 import com.tim.openvpn.utils.NetworkUtils
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.UnknownHostException
-import java.util.concurrent.TimeUnit
+import kotlin.system.exitProcess
 
-class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
-
-    // Notification
-    private val notificationHelper by lazy {
-        DefaultVpnServiceNotification(
-            service = this,
-            notificationManager = applicationContext.getSystemService(
-                NOTIFICATION_SERVICE
-            ) as NotificationManager
-        )
-    }
+class OpenVPNService : ProtocolsVpnService(), Handler.Callback, IOpenVPNService {
 
     private var management: OpenVPNThreadv3? = null
-    private val stateCallback by StateDelegate()
-    private var stateCached: ConnectionState = ConnectionState.DISCONNECTED
-    private val disconnectTimer = DisconnectTimer(
-        updateAction = { remaining ->
-            notificationHelper.updateNotification(
-                notificationHelper.createNotification(remaining)
-            )
-        },
-        disconnectAction = {
-            stopOpenVPN()
-        }
-    )
-
-
-    private lateinit var config: OpenVPNConfig
-
-    private val binder = object : IVPNService.Stub() {
-
-        override fun startVPN(configuration: VpnConfiguration<*>) {
-            config = configuration.data as OpenVPNConfig
-            startOpenVPN(configuration.timeToDisconnect)
-        }
-
-        override fun stopVPN() {
-            stopOpenVPN()
-        }
-
-        override fun getState(): ConnectionState = stateCached
-
-        override fun registerCallback(cb: IConnectionStateListener?) {
-            stateCallback.register(cb)
-        }
-
-        override fun unregisterCallback(cb: IConnectionStateListener?) {
-            stateCallback.unregister(cb)
-        }
-    }
-
-    @Suppress("DEPRECATION")
-    override fun onBind(intent: Intent?): IBinder? {
-        /*config = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU) {
-            intent
-                ?.extras
-                ?.getParcelable(CONFIG_EXTRA)
-                ?: return null
-        } else {
-            intent
-                ?.extras
-                ?.getParcelable(CONFIG_EXTRA, OpenVPNConfig::class.java)
-                ?: return null
-        }*/
-        return binder
-    }
+    private var config: OpenVPNConfig? = null
+    private var job: Job? = null
 
     override fun handleMessage(msg: Message): Boolean {
         val r = msg.callback
@@ -115,36 +48,44 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
         super.onRevoke()
     }
 
-    private var job: Job? = null
+    override fun prepare(intent: Intent) {
+        config = intent.parseConfiguration()
+    }
 
-    private fun startOpenVPN(timeToDisconnect: Long? = null) {
-        VpnStatus.log("startOpenVPN")
-        if (stateCached == ConnectionState.DISCONNECTED) {
-            if (timeToDisconnect != null) {
-                disconnectTimer.start(timeToDisconnect)
-            }
-            notificationHelper.start()
+    override fun start() {
+        startOpenVPN()
+    }
 
-            management = OpenVPNThreadv3(
-                this,
-                config.configuration ?: config.buildConfig()
-            )
-            VpnStatus.log("OpenVpnManagementThread init")
-            // TODO avoid global scope in next release
-            job = GlobalScope.launch(Dispatchers.IO) {
-                management!!.run()
-            }
-            //synchronized(mProcessLock) {
-            /*mProcessThread = Thread(management, "OpenVPNProcessThread")
-            mProcessThread?.start()*/
-            //}
-            VpnStatus.log("processThread init")
+    override fun stop() {
+        stopOpenVPN()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (currentProcess().contains("openvpn", true)) { // from manifest
+            exitProcess(0)
+        } else {
+            runCatching { stopSelf() }
         }
+    }
+
+    private fun startOpenVPN() {
+        showNotification()
+        val conf = requireNotNull(config)
+        VpnStatus.log("startOpenVPN")
+        management = OpenVPNThreadv3(
+            this,
+            conf.configuration ?: conf.buildConfig()
+        )
+        VpnStatus.log("OpenVpnManagementThread init")
+        job = lifecycleScope.launch(Dispatchers.IO) {
+            management!!.run()
+        }
+        VpnStatus.log("processThread init")
     }
 
     private fun stopOpenVPN() {
         VpnStatus.log("stopOpenVPN")
-
         management?.stopVPN()
     }
 
@@ -153,7 +94,6 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
      */
     private fun startTun(): ParcelFileDescriptor? {
         val builder = Builder().apply {
-
             if (localIp != null) {
                 addLocalNetworksToRoutes()
                 try {
@@ -231,7 +171,6 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 // Setting this false, will cause the VPN to inherit the underlying network metered
-                // value
                 setMetered(false)
             }
 
@@ -254,15 +193,13 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
             val netparts = net.split("/".toRegex()).dropLastWhile { it.isEmpty() }
                 .toTypedArray()
             val ipAddr = netparts[0]
-            val netMask = netparts[1].toInt()
+            //val netMask = netparts[1].toInt()
             if (ipAddr == localIp?.ip) continue
             //mRoutes.addIP(CIDRIP(ipAddr, netMask), false) // todo check
         }
-        //if (mProfile.mAllowLocalLAN) { // todo check
         for (net in NetworkUtils.getLocalNetworks(connectivityManager, true)) {
             addRoutev6(net, false)
         }
-        //}
     }
 
     private fun installRoutesExcluded(builder: Builder, routes: NetworkSpace) {
@@ -319,30 +256,9 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
         }
     }
 
-    // TODO refactor zone end
-
     private fun endVpnService() {
         stopOpenVPN()
-        //notificationHelper.stopNotification()
     }
-
-    private fun forceStopOpenVpnProcess() {
-        //synchronized(mProcessLock) {
-        /*if (mProcessThread != null) {
-            mProcessThread?.interrupt()
-            try {
-                Thread.sleep(1000)
-            } catch (e: InterruptedException) {
-                //ignore
-            }
-            mProcessThread = null
-        }*/
-        //}
-    }
-
-
-    private val mProcessLock = Any()
-    //private var mProcessThread: Thread? = null
 
     private var mtu: Int? = null
     private var domain: String? = null
@@ -383,7 +299,6 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
         if (gateway != null && (gateway.equals("255.255.255.255"))) {
             include = true
         }
-
 
         if (route.len == 32 && !mask.equals("255.255.255.255")) {
             OpenVPNLogger.e("OpenVPNService", dest)
@@ -447,18 +362,14 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
         get() = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     override fun openvpnStopped() {
-        disconnectTimer.cancel()
-        notificationHelper.stop()
-        forceStopOpenVpnProcess()
+        stopNotification()
         job?.cancel()
         job = null
         management = null
     }
 
-    override fun updateState(state: ConnectionState) {
-        stateCached = state
-        stateCallback.sendCallback { it.stateChanged(state) }
-        OpenVPNLogger.d("OpenVPNService", "State: $state")
+    override fun updateStateThread(state: ConnectionState) {
+        updateState(state)
     }
 
     private fun isAndroidTunDevice(device: String?): Boolean {
@@ -467,6 +378,34 @@ class OpenVPNService : VpnService(), Handler.Callback, IOpenVPNService {
     }
 
     companion object {
-        const val MANAGEMENT_THREAD_NAME = "OpenVPNManagementThread"
+        const val CONFIGURATION_KEY = "CONFIGURATION_KEY"
+
+        fun startService(
+            context: Context,
+            config: OpenVPNConfig,
+            notificationClass: String? = null,
+            allowedApplications: Array<String> = emptyArray()
+        ) {
+            val intent = Intent(context, OpenVPNService::class.java).apply {
+                setPackage(context.applicationContext.packageName)
+                putExtra(ACTION_KEY, ACTION_START_KEY)
+                putExtra(CONFIGURATION_KEY, config)
+                putExtra(NOTIFICATION_CLASS_KEY, notificationClass)
+                putExtra(ALLOWED_APPS_KEY, allowedApplications)
+            }
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N_MR1) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        }
+
+        fun stopService(context: Context) {
+            val intent = Intent(context, OpenVPNService::class.java).apply {
+                setPackage(context.applicationContext.packageName)
+                putExtra(ACTION_KEY, ACTION_STOP_KEY)
+            }
+            context.startService(intent)
+        }
     }
 }

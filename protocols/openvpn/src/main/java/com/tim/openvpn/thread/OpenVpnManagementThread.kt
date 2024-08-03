@@ -37,7 +37,7 @@ internal class OpenVpnManagementThread(
     private var socket by Delegates.notNull<LocalSocket>()
     private var serverSocket by Delegates.notNull<LocalServerSocket>()
 
-    init {
+    /*init {
         if (openManagementInterface(cacheDir)) {
             Thread(this, OpenVPNService.MANAGEMENT_THREAD_NAME).run {
                 start()
@@ -46,7 +46,7 @@ internal class OpenVpnManagementThread(
         } else {
             onEndService.invoke()
         }
-    }
+    }*/
 
     override fun run() {
         val buffer = ByteArray(BUFFER_SIZE)

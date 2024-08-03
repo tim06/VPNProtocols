@@ -1,9 +1,7 @@
 package com.tim.vpnprotocols.view.xtls
 
 import android.Manifest
-import android.app.Application
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
@@ -13,27 +11,19 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import android.os.Parcel
 import android.provider.Settings
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.snackbar.Snackbar
 import com.tim.basevpn.IConnectionStateListener
 import com.tim.basevpn.IVPNService
-import com.tim.basevpn.configuration.IVpnConfiguration
-import com.tim.basevpn.configuration.VpnConfiguration
 import com.tim.basevpn.state.ConnectionState
-import com.tim.basevpn.utils.NOTIFICATION_IMPL_CLASS_KEY
 import com.tim.vpnprotocols.R
 import com.tim.vpnprotocols.databinding.ShadowsocksFragmentLayoutBinding
-import com.tim.vpnprotocols.notification.VpnNotificationImpl
-import com.tim.vpnprotocols.view.shadowsocksr.VpnActivityResultContract
+import com.tim.vpnprotocols.view.base.VpnActivityResultContract
 /*import com.tim.xtlsr.XTLSRVpnConfig
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.SagerNet
@@ -43,8 +33,6 @@ import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.group.RawUpdater*/
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 /**
  * XTLS implementation

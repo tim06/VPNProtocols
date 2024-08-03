@@ -131,7 +131,7 @@ public class VpnStateService extends Service {
             return VpnStateService.this;
         }
 
-        @Override
+        /*@Override
         public void startVPN(VpnConfiguration configuration) throws RemoteException {
             notificationClassName = configuration.getNotificationClassName();
             if (configuration.getTimeToDisconnect() != null) {
@@ -164,6 +164,11 @@ public class VpnStateService extends Service {
             profileInfo.putString(VpnProfileControlActivity.PROFILE_NAME, conf.getName());
 
             VpnStateService.this.connect(profileInfo, true);
+        }*/
+
+        @Override
+        public void startVPN() throws RemoteException {
+
         }
 
         @Override

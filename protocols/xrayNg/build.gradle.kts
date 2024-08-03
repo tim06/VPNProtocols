@@ -8,9 +8,13 @@ android {
 
 dependencies {
     compileOnly(files("libs/libv2ray.aar"))
+    compileOnly(libs.androidx.datastore)
 
-    implementation(libs.tim.base)
-    implementation(libs.tim.notification)
+    api(libs.tim.base)
+    api(libs.tim.state)
+    api(libs.tim.notification)
+
     implementation(libs.kotlin.coroutines.core)
-    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.lifecyclektx)
 }

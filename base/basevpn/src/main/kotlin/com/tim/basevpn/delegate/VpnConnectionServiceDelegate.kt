@@ -65,7 +65,7 @@ class VpnConnectionServiceDelegate(
         return object : VPNRunner {
 
             override fun start(config: VpnConfiguration<*>) {
-                vpnService?.startVPN(config)
+                vpnService?.startVPN()
             }
 
             override fun stop() {

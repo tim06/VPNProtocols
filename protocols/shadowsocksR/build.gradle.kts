@@ -7,9 +7,11 @@ android {
 }
 
 dependencies {
+    compileOnly(libs.androidx.datastore)
+
     api(libs.tim.base)
     api(libs.tim.notification)
-    implementation(libs.kotlin.coroutines.core)
 
-    testImplementation(libs.test.kotlinx.coroutines)
+    implementation(libs.androidx.lifecyclektx)
+    implementation(libs.kotlin.coroutines.core)
 }

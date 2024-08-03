@@ -11,7 +11,7 @@ import com.tim.ikev2.Ikev2Configuration
 import com.tim.ikev2.Ikev2Connection
 import com.tim.vpnprotocols.R
 import com.tim.vpnprotocols.databinding.OpenvpnFragmentLayoutBinding
-import com.tim.vpnprotocols.view.shadowsocksr.VpnActivityResultContract
+import com.tim.vpnprotocols.view.base.VpnActivityResultContract
 
 class Ikev2Fragment : Fragment(R.layout.openvpn_fragment_layout) {
 

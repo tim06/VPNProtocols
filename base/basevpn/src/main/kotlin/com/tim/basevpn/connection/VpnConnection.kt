@@ -68,7 +68,7 @@ abstract class VpnConnection<T : Service>(
     }
 
     override fun start(config: VpnConfiguration<*>) {
-        vpnService?.startVPN(config)
+        vpnService?.startVPN()
     }
 
     override fun stop() {

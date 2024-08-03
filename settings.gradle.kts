@@ -24,6 +24,7 @@ include(
     ":sample",
     ":base:notification",
     ":base:basevpn",
+    ":base:state",
     ":protocols:openvpn",
     ":protocols:shadowsocksR",
     ":protocols:ikev2",
@@ -31,3 +32,5 @@ include(
     ":protocols:xrayNg",
     //":protocols:xrayNeko",
 )
+
+gradle.startParameter.excludedTaskNames.addAll(listOf(":build-logic:plugins:testClasses"))

@@ -39,8 +39,11 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -159,6 +162,16 @@ public class TrustedCertificatesActivity extends AppCompatActivity implements Tr
 	private void reloadCertificates()
 	{
 		TrustedCertificateManager.getInstance().reset();
+	}
+
+	@Override
+	public void addMenuProvider(@NonNull MenuProvider provider, @NonNull LifecycleOwner owner, @NonNull Lifecycle.State state) {
+
+	}
+
+	@Override
+	public void onPointerCaptureChanged(boolean hasCapture) {
+		super.onPointerCaptureChanged(hasCapture);
 	}
 
 	public static class TrustedCertificatesPagerAdapter extends FragmentStateAdapter

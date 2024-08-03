@@ -7,6 +7,8 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import com.tim.notification.R
 import com.tim.notification.VpnServiceNotification
 import com.tim.vpnprotocols.view.MainViewActivity
@@ -16,18 +18,18 @@ class VpnNotificationImpl(
     private val notificationManager: NotificationManager
 ) : VpnServiceNotification {
 
+    override fun withTimer(): Boolean = false
+
     override fun start() {
         val notification = createNotification("")
         service.startForeground(NOTIFICATION_ID, notification)
     }
 
-    //@Suppress("DEPRECATION")
     override fun stop() {
-        service.stopForeground(true)
+        ServiceCompat.stopForeground(service, Service.STOP_FOREGROUND_REMOVE)
         notificationManager.cancel(NOTIFICATION_ID)
     }
 
-    @Suppress("DEPRECATION")
     override fun createNotification(description: String): Notification {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel =
@@ -39,11 +41,7 @@ class VpnNotificationImpl(
             channel.setSound(null, null)
             notificationManager.createNotificationChannel(channel)
         }
-        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Notification.Builder(service, CHANNEL_ID)
-        } else {
-            Notification.Builder(service)
-        }
+        val builder = NotificationCompat.Builder(service, CHANNEL_ID)
         return builder
             .setWhen(0)
             .setSmallIcon(R.drawable.ic_key)

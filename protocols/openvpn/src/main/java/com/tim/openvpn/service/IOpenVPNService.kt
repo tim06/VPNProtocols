@@ -24,5 +24,5 @@ interface IOpenVPNService {
 
     val connectivityManager: ConnectivityManager?
     fun openvpnStopped()
-    fun updateState(state: ConnectionState)
+    fun updateStateThread(state: ConnectionState)
 }

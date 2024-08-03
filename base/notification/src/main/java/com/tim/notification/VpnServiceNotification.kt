@@ -4,6 +4,8 @@ import android.app.Notification
 
 interface VpnServiceNotification {
 
+    fun withTimer(): Boolean
+
     fun start()
 
     fun stop()

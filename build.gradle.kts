@@ -1,3 +1,5 @@
+import com.vanniktech.maven.publish.MavenPublishBaseExtension
+
 buildscript {
     repositories {
         google()
@@ -8,7 +10,8 @@ buildscript {
 
 plugins {
     alias(libs.plugins.android.application) apply false
-    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.publish) apply false
 }
 
@@ -17,7 +20,7 @@ allprojects {
         group = "io.github.tim06"
         version = findProperty("protocols.version") as String
 
-        extensions.configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
+        extensions.configure<MavenPublishBaseExtension> {
             publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.S01)
             signAllPublications()
 

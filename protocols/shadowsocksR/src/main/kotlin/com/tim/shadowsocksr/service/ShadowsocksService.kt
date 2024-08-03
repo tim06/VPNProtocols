@@ -39,6 +39,7 @@ import java.util.TimerTask
 /**
  * @Author: Timur Hojatov
  */
+@Deprecated("Use com.tim.shadowsocksr.service.ShadowsocksRService")
 class ShadowsocksService : VpnService() {
 
     private val dataDir: String by lazy {
@@ -78,8 +79,8 @@ class ShadowsocksService : VpnService() {
 
     private val binder = object : IVPNService.Stub() {
 
-        override fun startVPN(configuration: VpnConfiguration<*>) {
-            if (stateCached == ConnectionState.DISCONNECTED || stateCached == ConnectionState.READYFORCONNECT) {
+        override fun startVPN(/*configuration: VpnConfiguration<*>*/) {
+            /*if (stateCached == ConnectionState.DISCONNECTED || stateCached == ConnectionState.READYFORCONNECT) {
                 updateState(ConnectionState.CONNECTING)
                 config = configuration.data as ShadowsocksRVpnConfig
                 configuration.notificationClassName?.let { notificationClass ->
@@ -89,7 +90,7 @@ class ShadowsocksService : VpnService() {
                 }
                 allowedApps = configuration.allowedApps.toTypedArray()
                 start()
-            }
+            }*/
         }
 
         override fun stopVPN() {
@@ -360,20 +361,7 @@ class ShadowsocksService : VpnService() {
             stateCallback.sendCallback {
                 it.trafficUpdate(txRate, rxRate, txTotal, rxTotal)
             }
-            /*val n = stateCallback.beginBroadcast()
-            for (i in 0 until n) {
-                try {
-
-                    stateCallback.getBroadcastItem(i)
-                        .trafficUpdated(txRate, rxRate, txTotal, rxTotal)
-                } catch (e: Exception) {
-                    // Ignore
-                }
-
-            }
-            callbacks.finishBroadcast()*/
         }
-        //}
     }
 
     companion object {

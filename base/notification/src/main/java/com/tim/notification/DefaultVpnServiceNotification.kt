@@ -14,13 +14,15 @@ class DefaultVpnServiceNotification(
     private val notificationManager: NotificationManager
 ) : VpnServiceNotification {
 
+    override fun withTimer(): Boolean = false
+
     override fun start() {
         val notification = createNotification("")
         ServiceCompat.startForeground(
             service,
             NOTIFICATION_ID,
             notification,
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
         )
     }
 
@@ -70,9 +72,9 @@ class DefaultVpnServiceNotification(
         notificationManager.notify(NOTIFICATION_ID, notification)
     }
 
-    private companion object {
-        private const val NOTIFICATION_ID = 99998
-        private const val CHANNEL_ID = "CHANNEL_ID"
+    companion object {
+        const val NOTIFICATION_ID = 99995
+        const val CHANNEL_ID = "CHANNEL_ID"
         private const val CHANNEL_NAME = "CHANNEL_NAME"
     }
 }

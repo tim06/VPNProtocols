@@ -3,11 +3,6 @@ package com.tim.vpnprotocols.xrayNg
 import android.content.Context
 import android.provider.Settings
 import android.util.Base64
-import android.util.Log
-import java.io.IOException
-import java.net.InetSocketAddress
-import java.net.Socket
-import java.net.UnknownHostException
 
 private const val DIR_ASSETS = "assets"
 

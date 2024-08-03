@@ -172,7 +172,7 @@ internal class ConfigWriter(
 
         private const val SSTUNNEL_CONFIG_FILE_NAME = "ss-tunnel-vpn.conf"
 
-        private const val LIB_TUN_SOCKS_FILE_NAME = "libtun2socks.so"
+        private const val LIB_TUN_SOCKS_FILE_NAME = "libtun2socks_ssr.so"
 
         private const val DEFAULT_LOCAL_PORT = 1080
 

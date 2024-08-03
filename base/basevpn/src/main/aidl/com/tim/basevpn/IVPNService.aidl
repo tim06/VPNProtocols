@@ -5,8 +5,8 @@ import com.tim.basevpn.state.ConnectionState;
 import com.tim.basevpn.configuration.VpnConfiguration;
 
 interface IVPNService {
-    oneway void startVPN(in VpnConfiguration configuration);
-    void stopVPN();
+    oneway void startVPN();
+    oneway void stopVPN();
 
     ConnectionState getState();
 

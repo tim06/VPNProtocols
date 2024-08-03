@@ -2,26 +2,26 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main_navigation"
-    app:startDestination="@id/selectProtocolFragment">
+    app:startDestination="@id/typeUiFragment">
     <fragment
-        android:id="@+id/selectProtocolFragment"
-        android:name="com.tim.vpnprotocols.view.SelectProtocolFragment"
-        android:label="SelectProtocolFragment">
+        android:id="@+id/typeUiFragment"
+        android:name="com.tim.vpnprotocols.root.TypeUiFragment"
+        android:label="TypeUiFragment" >
         <action
-            android:id="@+id/action_selectProtocolFragment_to_shadowsocksrFragment"
-            app:destination="@id/shadowsocksrFragment" />
-        <action
-            android:id="@+id/action_selectProtocolFragment_to_openvpnFragment"
+            android:id="@+id/action_typeUiFragment_to_openvpnFragment"
             app:destination="@id/openvpnFragment" />
         <action
-            android:id="@+id/action_selectProtocolFragment_to_ikev2Fragment"
+            android:id="@+id/action_typeUiFragment_to_shadowsocksrFragment"
+            app:destination="@id/shadowsocksrFragment" />
+        <action
+            android:id="@+id/action_typeUiFragment_to_ikev2Fragment"
             app:destination="@id/ikev2Fragment" />
         <action
-            android:id="@+id/action_selectProtocolFragment_to_XTLSServiceFragment"
-            app:destination="@id/XTLSServiceFragment" />
-        <action
-            android:id="@+id/action_selectProtocolFragment_to_xrayNgFragment"
+            android:id="@+id/action_typeUiFragment_to_xrayNgFragment"
             app:destination="@id/xrayNgFragment" />
+        <action
+            android:id="@+id/action_typeUiFragment_to_XTLSServiceFragment"
+            app:destination="@id/XTLSServiceFragment" />
     </fragment>
     <fragment
         android:id="@+id/shadowsocksrFragment"
@@ -41,6 +41,6 @@
         android:label="XTLSServiceFragment" />
     <fragment
         android:id="@+id/xrayNgFragment"
-        android:name="com.tim.vpnprotocols.view.xrayNg.XrayNgFragment"
+        android:name="com.tim.vpnprotocols.view.xrayNg.XrayNgServiceFragment"
         android:label="XrayNgFragment" />
 </navigation>

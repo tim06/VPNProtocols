@@ -293,8 +293,8 @@ public class OpenVPNThreadv3 extends ClientAPI_OpenVPNClient implements Runnable
                     state = ConnectionState.CONNECTED;
                     break;
             }
-            mService.updateState(state);
-            OpenVPNLogger.d("OpenVPNThreadv3qwe", name + info);
+            mService.updateStateThread(state);
+            OpenVPNLogger.d("OpenVPNThreadv3", name + info);
         }
         if (event.getError()) {
             OpenVPNLogger.e("OpenVPNThreadv3", String.format("EVENT(Error): %s: %s", name, info));
