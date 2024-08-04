@@ -30,6 +30,14 @@ jobs:
       with:
         name: apks
         path: sample/build/outputs/apk/release/*.apk
+
+    - name: Decode Keystore
+      env:
+        ENCODED_STRING: ${{ secrets.GPG_SIGNING_KEY }}
+        SIGNING_KEY_STORE_PATH: ${{ secrets.SIGNING_KEY_STORE_PATH }}
+        run: |
+           echo $ENCODED_STRING > keystore-b64.txt
+           base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH
       
     - name: Publish
       run: ./gradlew publishReleasePublicationToMavenCentralRepository
@@ -37,5 +45,5 @@ jobs:
           mavenUsername: ${{ secrets.MAVEN_USERNAME }}
           mavenPassword: ${{ secrets.MAVEN_PASSWORD }}
           signingKeyId: ${{ secrets.GPG_SIGNING_KEY_ID }}
-          signingKey: ${{ secrets.GPG_SIGNING_KEY }}
+          signingKey: ${{ secrets.SIGNING_KEY_STORE_PATH }}
           signingPassword: ${{ secrets.GPG_PASSWORD }}
