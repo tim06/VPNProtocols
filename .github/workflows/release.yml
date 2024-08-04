@@ -18,5 +18,21 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+
+    - name: Build sample apk
+      run: ./gradlew sample:assembleRelease
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v2
+      with:
+        name: apks
+        path: sample/build/outputs/apk/release/*.apk
+      
     - name: Publish
       run: ./gradlew publishReleasePublicationToMavenCentralRepository
+      env:
+          mavenUsername: ${{ secrets.MAVEN_USERNAME }}
+          mavenPassword: ${{ secrets.MAVEN_PASSWORD }}
+          signingKeyId: ${{ secrets.GPG_SIGNING_KEY_ID }}
+          signingKey: ${{ secrets.GPG_SIGNING_KEY }}
+          signingPassword: ${{ secrets.GPG_PASSWORD }}
