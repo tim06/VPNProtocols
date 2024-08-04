@@ -66,7 +66,7 @@ android {
     splits {
         abi {
             isEnable = true
-            isUniversalApk = false
+            isUniversalApk = true
         }
     }
 
@@ -89,8 +89,8 @@ dependencies {
     implementation(files("libs/libv2ray.aar"))
 
     //Modules
-    implementation(project(":base:state"))
-    implementation(project(":base:basevpn"))
+    //implementation(project(":base:state"))
+    //implementation(project(":base:basevpn"))
     implementation(project(":protocols:openvpn"))
     implementation(project(":protocols:shadowsocksR"))
     implementation(project(":protocols:ikev2"))
