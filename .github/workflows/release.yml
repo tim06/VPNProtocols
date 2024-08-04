@@ -12,36 +12,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+      # Set up JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-    - name: Build sample apk
-      run: ./gradlew sample:assembleRelease
+      # Grant execute permission for gradlew
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v2
-      with:
-        name: apks
-        path: sample/build/outputs/apk/release/*.apk
+      # Build sample APK
+      - name: Build sample APK
+        run: ./gradlew sample:assembleRelease
 
-    - name: Decode Keystore
-      env:
-        ENCODED_STRING: ${{ secrets.GPG_SIGNING_KEY }}
-        SIGNING_KEY_STORE_PATH: ${{ secrets.SIGNING_KEY_STORE_PATH }}
-      run: |
-        echo $ENCODED_STRING > keystore-b64.txt
-        base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH
+      # Upload APK
+      - name: Upload APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: sample-apk
+          path: sample/build/outputs/apk/release/*.apk
+
+      # Decode Keystore
+      - name: Decode Keystore
+        env:
+          ENCODED_STRING: ${{ secrets.GPG_SIGNING_KEY }}
+          SIGNING_KEY_STORE_PATH: ${{ secrets.SIGNING_KEY_STORE_PATH }}
+        run: |
+          echo $ENCODED_STRING > keystore-b64.txt
+          base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH
       
-    - name: Publish
-      run: ./gradlew publishReleasePublicationToMavenCentralRepository
-      env:
+      # Publish to Maven Central
+      - name: Publish to Maven Central
+        run: ./gradlew publishReleasePublicationToMavenCentralRepository
+        env:
           mavenUsername: ${{ secrets.MAVEN_USERNAME }}
           mavenPassword: ${{ secrets.MAVEN_PASSWORD }}
           signingKeyId: ${{ secrets.GPG_SIGNING_KEY_ID }}
