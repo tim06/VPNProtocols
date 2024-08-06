@@ -9,22 +9,22 @@ import com.tim.vpnprotocols.databinding.ShadowsocksFragmentLayoutBinding
 import com.tim.vpnprotocols.util.initStateListener
 import com.tim.vpnprotocols.view.base.BaseVpnFragment
 import com.tim.vpnprotocols.xrayNg.XRayNgService
-import io.github.tim06.Protocol
-import io.github.tim06.XrayConfiguration
-import io.github.tim06.dns.Dns
-import io.github.tim06.dns.DnsServer
-import io.github.tim06.inbounds.Destination
-import io.github.tim06.inbounds.Inbound
-import io.github.tim06.inbounds.Sniffing
-import io.github.tim06.inbounds.settings.HttpInboundConfigurationObject
-import io.github.tim06.inbounds.settings.SocksInboundConfigurationObject
-import io.github.tim06.log.Log
-import io.github.tim06.log.LogLevel
-import io.github.tim06.outbounds.settings.ShadowsocksOutboundConfigurationObject
-import io.github.tim06.parser.parse
-import io.github.tim06.routing.DomainStrategy
-import io.github.tim06.routing.Routing
-import io.github.tim06.routing.Rule
+import io.github.tim06.xrayConfiguration.Protocol
+import io.github.tim06.xrayConfiguration.XrayConfiguration
+import io.github.tim06.xrayConfiguration.dns.Dns
+import io.github.tim06.xrayConfiguration.dns.DnsServer
+import io.github.tim06.xrayConfiguration.inbounds.Destination
+import io.github.tim06.xrayConfiguration.inbounds.Inbound
+import io.github.tim06.xrayConfiguration.inbounds.Sniffing
+import io.github.tim06.xrayConfiguration.inbounds.settings.HttpInboundConfigurationObject
+import io.github.tim06.xrayConfiguration.inbounds.settings.SocksInboundConfigurationObject
+import io.github.tim06.xrayConfiguration.log.Log
+import io.github.tim06.xrayConfiguration.log.LogLevel
+import io.github.tim06.xrayConfiguration.outbounds.settings.ShadowsocksOutboundConfigurationObject
+import io.github.tim06.xrayConfiguration.parser.parse
+import io.github.tim06.xrayConfiguration.routing.DomainStrategy
+import io.github.tim06.xrayConfiguration.routing.Routing
+import io.github.tim06.xrayConfiguration.routing.Rule
 
 class XrayNgIntentFragment : BaseVpnFragment(R.layout.shadowsocks_fragment_layout) {
 
