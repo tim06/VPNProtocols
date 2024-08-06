@@ -12,7 +12,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        mavenLocal()
 
         // todo remove RoomigrantLib
         maven { setUrl("https://jitpack.io") }

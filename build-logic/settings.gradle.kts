@@ -2,7 +2,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        mavenLocal()
     }
     versionCatalogs {
         create("libs") {

@@ -127,7 +127,7 @@ dependencies {
     //DataStore
     implementation(libs.androidx.datastore)
 
-    implementation("io.github.tim06.xray-configuration:xray-configuration-android:1.0")
+    implementation(libs.xray.configuration.android)
 
     //Test
     /*testImplementation(libs.test.junit)

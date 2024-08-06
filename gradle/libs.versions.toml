@@ -33,6 +33,7 @@ vpnprotocols-version = "1.1.0"
 
 espresso-core = "3.6.1"
 core = "1.13.1"
+xrayConfigurationAndroid = "1.0.0"
 
 [libraries]
 # Android
@@ -73,6 +74,8 @@ tim-notification = { module = "io.github.tim06:vpnprotocolsnotification", versio
 tim-state = { module = "io.github.tim06:vpnstate", version.ref = "vpnprotocols-version" }
 tim-shadowsocksr = { module = "io.github.tim06:shadowsocksr", version.ref = "vpnprotocols-version" }
 tim-openvpn = { module = "io.github.tim06:openvpn", version.ref = "vpnprotocols-version" }
+
+xray-configuration-android = { module = "io.github.tim06.xray-configuration:xray-configuration-android", version.ref = "xrayConfigurationAndroid" }
 
 # Test
 test-junit = { module = "junit:junit", version.ref = "junit" }
