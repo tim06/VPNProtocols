@@ -47,7 +47,7 @@ jobs:
             VPNProtocols Build
             
             View: https://github.com/tim06/VPNProtocols/actions/runs/${{ github.run_id }}
-          document: ./sample/build/outputs/apk/debug/*.apk
+          #document: ./sample/build/outputs/apk/debug/*.apk
 
       # Decode Keystore
       - name: Decode Keystore
