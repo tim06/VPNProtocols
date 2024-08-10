@@ -64,6 +64,6 @@ jobs:
         env:
           mavenUsername: ${{ secrets.MAVEN_USERNAME }}
           mavenPassword: ${{ secrets.MAVEN_PASSWORD }}
-          signingKeyId: ${{ secrets.GPG_SIGNING_KEY_ID }}
-          signingKey: ${{ secrets.SIGNING_KEY_STORE_PATH }}
-          signingPassword: ${{ secrets.GPG_PASSWORD }}
+          signingInMemoryKeyId: ${{ secrets.GPG_SIGNING_KEY_ID }}
+          signingInMemoryKey: ${{ secrets.SIGNING_KEY_STORE_PATH }}
+          signingInMemoryKeyPassword: ${{ secrets.GPG_PASSWORD }}
