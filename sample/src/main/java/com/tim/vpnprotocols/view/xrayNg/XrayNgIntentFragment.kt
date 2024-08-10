@@ -8,7 +8,7 @@ import com.tim.vpnprotocols.R
 import com.tim.vpnprotocols.databinding.ShadowsocksFragmentLayoutBinding
 import com.tim.vpnprotocols.util.initStateListener
 import com.tim.vpnprotocols.view.base.BaseVpnFragment
-import com.tim.vpnprotocols.xrayNg.XRayNgService
+//import com.tim.vpnprotocols.xrayNg.XRayNgService
 import io.github.tim06.xrayConfiguration.Protocol
 import io.github.tim06.xrayConfiguration.XrayConfiguration
 import io.github.tim06.xrayConfiguration.dns.Dns
@@ -34,20 +34,20 @@ class XrayNgIntentFragment : BaseVpnFragment(R.layout.shadowsocks_fragment_layou
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initStateListener(XRayNgService::class.java.simpleName, ::updateState)
+        /*initStateListener(XRayNgService::class.java.simpleName, ::updateState)
         layoutBinding.startButton.setOnClickListener { start() }
-        layoutBinding.stopButton.setOnClickListener { XRayNgService.stopService(requireContext()) }
+        layoutBinding.stopButton.setOnClickListener { XRayNgService.stopService(requireContext()) }*/
     }
 
     override fun launch() {
-        val configuration = buildConfiguration()
+        /*val configuration = buildConfiguration()
         val protocolOutboundSettings = (configuration?.outbounds?.firstOrNull()?.settings as? ShadowsocksOutboundConfigurationObject)?.servers?.firstOrNull()
         val domain = "${protocolOutboundSettings?.address}:${protocolOutboundSettings?.port}"
         XRayNgService.startService(
             context = requireContext(),
             config = configuration?.raw().orEmpty(),
             domain = domain
-        )
+        )*/
     }
 
     private fun updateState(connectionState: ConnectionState) {

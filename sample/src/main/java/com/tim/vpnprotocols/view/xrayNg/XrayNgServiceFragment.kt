@@ -16,7 +16,7 @@ import com.tim.vpnprotocols.R
 import com.tim.vpnprotocols.databinding.ShadowsocksFragmentLayoutBinding
 import com.tim.vpnprotocols.util.isProcessRunning
 import com.tim.vpnprotocols.view.base.BaseVpnFragment
-import com.tim.vpnprotocols.xrayNg.XRayNgService
+//import com.tim.vpnprotocols.xrayNg.XRayNgService
 import io.github.tim06.xrayConfiguration.Protocol
 import io.github.tim06.xrayConfiguration.XrayConfiguration
 import io.github.tim06.xrayConfiguration.dns.Dns
@@ -70,11 +70,11 @@ class XrayNgServiceFragment : BaseVpnFragment(R.layout.shadowsocks_fragment_layo
         super.onViewCreated(view, savedInstanceState)
         layoutBinding.startButton.setOnClickListener { start() }
         layoutBinding.stopButton.setOnClickListener {
-            if (XRayNgService.isActive(requireContext()) || isProcessRunning(requireContext(), "com.tim.vpnprotocols.debug:xrayNg")) {
+            /*if (XRayNgService.isActive(requireContext()) || isProcessRunning(requireContext(), "com.tim.vpnprotocols.debug:xrayNg")) {
                 serviceAction { stopVPN() }
             } else {
                 showSnackbar("Not found xray process!")
-            }
+            }*/
         }
     }
 
@@ -90,7 +90,7 @@ class XrayNgServiceFragment : BaseVpnFragment(R.layout.shadowsocks_fragment_layo
         lastAction = action
         runCatching { requireContext().unbindService(serviceConnection) }
 
-        requireContext().bindService(
+        /*requireContext().bindService(
             XRayNgService.buildIntent(
                 context = requireContext(),
                 config = configuration?.raw().orEmpty(),
@@ -98,7 +98,7 @@ class XrayNgServiceFragment : BaseVpnFragment(R.layout.shadowsocks_fragment_layo
             ),
             serviceConnection,
             Context.BIND_AUTO_CREATE
-        )
+        )*/
     }
 
     private fun buildConfiguration(): XrayConfiguration? {

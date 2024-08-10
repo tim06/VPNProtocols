@@ -151,6 +151,7 @@ class XRayNekoService : NetworkListenerVpnService() {
     }
 
     override fun stop() {
+        updateState(ConnectionState.DISCONNECTING)
         processes?.close(GlobalScope + Dispatchers.IO)
         cacheFiles?.all { it.delete() }
         cacheFiles?.clear()
@@ -159,6 +160,7 @@ class XRayNekoService : NetworkListenerVpnService() {
         box?.close()
         runCatching { vpnInterface?.close() }
         stopNotification()
+        updateState(ConnectionState.DISCONNECTED)
         stopSelf()
     }
 

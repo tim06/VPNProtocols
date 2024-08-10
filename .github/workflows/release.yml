@@ -29,14 +29,25 @@ jobs:
 
       # Build sample APK
       - name: Build sample APK
-        run: ./gradlew sample:assembleRelease
+        run: ./gradlew sample:assembleDebug
 
       # Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v2
         with:
           name: sample-apk
-          path: sample/build/outputs/apk/release/*.apk
+          path: sample/build/outputs/apk/debug/*.apk
+
+      - name: send APK build on success
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            VPNProtocols Build
+            
+            View: https://github.com/tim06/VPNProtocols/actions/runs/${{ github.run_id }}
+          document: ./sample/build/outputs/apk/debug/*.apk
 
       # Decode Keystore
       - name: Decode Keystore
