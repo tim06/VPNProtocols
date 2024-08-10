@@ -29,5 +29,8 @@ class SelectProtocolViewFragment : Fragment(R.layout.select_protocol_fragment) {
         selectProtocolFragmentBinding.xrayNgButton.setOnClickListener {
             requireActivity().findNavController(R.id.nav_host_fragment).navigate(R.id.action_typeUiFragment_to_xrayNgFragment)
         }
+        selectProtocolFragmentBinding.xrayNekoButton.setOnClickListener {
+            requireActivity().findNavController(R.id.nav_host_fragment).navigate(R.id.action_typeUiFragment_to_xrayNekoIntentFragment)
+        }
     }
 }

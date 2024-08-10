@@ -22,6 +22,9 @@
         <action
             android:id="@+id/action_typeUiFragment_to_XTLSServiceFragment"
             app:destination="@id/XTLSServiceFragment" />
+        <action
+            android:id="@+id/action_typeUiFragment_to_xrayNekoIntentFragment"
+            app:destination="@id/xrayNekoIntentFragment" />
     </fragment>
     <fragment
         android:id="@+id/shadowsocksrFragment"
@@ -43,4 +46,8 @@
         android:id="@+id/xrayNgFragment"
         android:name="com.tim.vpnprotocols.view.xrayNg.XrayNgServiceFragment"
         android:label="XrayNgFragment" />
+    <fragment
+        android:id="@+id/xrayNekoIntentFragment"
+        android:name="com.tim.vpnprotocols.view.xrayNeko.XrayNekoIntentFragment"
+        android:label="XrayNekoIntentFragment" />
 </navigation>

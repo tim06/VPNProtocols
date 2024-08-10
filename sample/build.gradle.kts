@@ -85,8 +85,8 @@ android {
 
 dependencies {
     // xtls
-    //implementation(files("libs/libcore.aar"))
-    implementation(files("libs/libv2ray.aar"))
+    implementation(files("libs/libcore.aar"))
+    //implementation(files("libs/libv2ray.aar"))
 
     //Modules
     //implementation(project(":base:state"))
@@ -96,6 +96,7 @@ dependencies {
     implementation(project(":protocols:ikev2"))
     //implementation(project(":protocols:xtlsr"))
     implementation(project(":protocols:xrayNg"))
+    implementation(project(":protocols:xrayNeko"))
 
     //AndroidX
     implementation(libs.androidx.core)

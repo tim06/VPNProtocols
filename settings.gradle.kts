@@ -27,9 +27,8 @@ include(
     ":protocols:openvpn",
     ":protocols:shadowsocksR",
     ":protocols:ikev2",
-    //":protocols:xtlsr",
     ":protocols:xrayNg",
-    //":protocols:xrayNeko",
+    ":protocols:xrayNeko",
 )
 
 gradle.startParameter.excludedTaskNames.addAll(listOf(":build-logic:plugins:testClasses"))

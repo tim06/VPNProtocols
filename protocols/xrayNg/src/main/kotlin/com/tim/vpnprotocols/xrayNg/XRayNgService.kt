@@ -22,6 +22,7 @@ import com.tim.vpnprotocols.xrayNg.helper.FdSendHelper
 import com.tim.vpnprotocols.xrayNg.helper.Tun2SocksHelper
 import com.tim.vpnprotocols.xrayNg.parser.parseConfiguration
 import com.tim.vpnprotocols.xrayNg.parser.parseDomainName
+import go.Seq
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
@@ -59,6 +60,7 @@ class XRayNgService : ProtocolsVpnService() {
 
     override fun initDependencies(intent: Intent) {
         super.initDependencies(intent)
+        Seq.setContext(applicationContext)
         logger = Logger(this::class.simpleName.orEmpty())
         logger?.d("initDependencies()")
 
@@ -172,11 +174,7 @@ class XRayNgService : ProtocolsVpnService() {
 
         updateState(ConnectionState.DISCONNECTED)
 
-        if (currentProcess().contains("xrayNg", true)) { // from manifest
-            exitProcess(0)
-        } else {
-            runCatching { stopSelf() }
-        }
+        runCatching { stopSelf() }
     }
 
     override fun unbindService(conn: ServiceConnection) {
@@ -187,6 +185,9 @@ class XRayNgService : ProtocolsVpnService() {
     override fun onDestroy() {
         super.onDestroy()
         logger?.d("onDestroy()")
+        if (currentProcess().contains("xrayNg", true)) { // from manifest
+            exitProcess(0)
+        }
     }
 
     @SuppressLint("InlinedApi")

@@ -30,9 +30,9 @@ import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
-import io.nekohasekai.sagernet.database.ProxyEntity
+import com.tim.vpnprotocols.xrayNeko.fmt.ProxyEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.group.RawUpdater*/
+import com.tim.vpnprotocols.xrayNeko.parser.RawUpdater*/
 
 /**
  * XTLS implementation
