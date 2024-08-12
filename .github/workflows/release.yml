@@ -56,7 +56,7 @@ jobs:
           SIGNING_KEY_STORE_PATH: ${{ secrets.SIGNING_KEY_STORE_PATH }}
         run: |
           echo $ENCODED_STRING > keystore-b64.txt
-          base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH
+          base64 -i keystore-b64.txt -o $SIGNING_KEY_STORE_PATH -d
       
       # Publish to Maven Central
       - name: Publish to Maven Central
