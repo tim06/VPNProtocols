@@ -45,7 +45,9 @@ class XRayNekoService : NetworkListenerVpnService() {
 
     private val nB4AInterface: NB4AInterface = object : NB4AInterface {
         override fun selector_OnProxySelected(p0: String?, p1: String?) {
-            Libcore.resetAllConnections(true)
+            lifecycleScope.launch(Dispatchers.IO) {
+                Libcore.resetAllConnections(true)
+            }
         }
 
         override fun useOfficialAssets(): Boolean {
@@ -54,7 +56,9 @@ class XRayNekoService : NetworkListenerVpnService() {
     }
     private val boxPlatformInterface: BoxPlatformInterface = object : BoxPlatformInterface {
         override fun autoDetectInterfaceControl(fd: Int) {
-            protect(fd)
+            lifecycleScope.launch {
+                protect(fd)
+            }
         }
 
         @RequiresApi(Build.VERSION_CODES.Q)
@@ -110,20 +114,17 @@ class XRayNekoService : NetworkListenerVpnService() {
         val logBufSize = 50 // kb
         val logLevel = 0 // 0 -> "panic"; 1 -> "warn"; 2 -> "info"; 3 -> "debug"; 4 -> "trace"
 
-        lifecycleScope.launch(Dispatchers.Default) {
+        lifecycleScope.launch(Dispatchers.IO) {
             Libcore.initCore(
                 process,
                 cacheDir.absolutePath + "/",
                 filesDir.absolutePath + "/",
                 externalAssets.absolutePath + "/",
                 logBufSize,
-                false,
+                true,
                 nB4AInterface,
                 boxPlatformInterface
             )
-        }
-
-        lifecycleScope.launch(Dispatchers.Default) {
             registerDns()
             val configuration = intent.parseConfiguration()
             box = Libcore.newSingBoxInstance(configuration)
@@ -139,25 +140,32 @@ class XRayNekoService : NetworkListenerVpnService() {
 
     override fun prepare(intent: Intent) {
         super.prepare(intent)
-        val naiveConfig = intent.parseNaiveConfiguration()
-        naiveConfig?.let { initNaive(it) }
+        lifecycleScope.launch(Dispatchers.IO) {
+            val naiveConfig = intent.parseNaiveConfiguration()
+            naiveConfig?.let { initNaive(it) }
+        }
     }
 
     override fun start() {
-        lifecycleScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch {
             showNotification()
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
             box?.start()
         }
     }
 
     override fun stop() {
         updateState(ConnectionState.DISCONNECTING)
-        processes?.close(GlobalScope + Dispatchers.IO)
-        cacheFiles?.all { it.delete() }
-        cacheFiles?.clear()
-        cacheFiles = null
-        Libcore.registerLocalDNSTransport(null)
-        box?.close()
+        lifecycleScope.launch(Dispatchers.IO) {
+            Libcore.registerLocalDNSTransport(null)
+            box?.close()
+
+            processes?.close(GlobalScope + Dispatchers.IO)
+            cacheFiles?.all { it.delete() }
+            cacheFiles?.clear()
+            cacheFiles = null
+        }
         runCatching { vpnInterface?.close() }
         stopNotification()
         updateState(ConnectionState.DISCONNECTED)
@@ -177,16 +185,16 @@ class XRayNekoService : NetworkListenerVpnService() {
         builder.setSession("New VPN")
         builder.setMtu(MTU)
 
+        builder.addAddress(PRIVATE_VLAN4_CLIENT, 30)
+        builder.addRoute("0.0.0.0", 0)
+        builder.addRoute("::", 0)
+        builder.addDnsServer(PRIVATE_VLAN4_ROUTER)
+
+        allowedApplications?.forEach { builder.addAllowedApplication(it.trim()) }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             builder.setMetered(false)
         }
-
-        builder.addAddress(PRIVATE_VLAN4_CLIENT, 30)
-        builder.addDnsServer(PRIVATE_VLAN4_ROUTER)
-        builder.addRoute("0.0.0.0", 0)
-        builder.addRoute("::", 0)
-
-        allowedApplications?.forEach { builder.addAllowedApplication(it) }
 
         runCatching {
             vpnInterface = builder.establish()

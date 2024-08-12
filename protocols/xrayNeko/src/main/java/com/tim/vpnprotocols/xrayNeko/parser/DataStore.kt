@@ -2,7 +2,7 @@ package com.tim.vpnprotocols.xrayNeko.parser
 
 object DataStore {
     val globalAllowInsecure: Boolean = true
-    val logLevel: Int = 0
+    val logLevel: Int = 1
     val localDNSPort: Int = 6450
     val mtu: Int = 9000
     val enableClashAPI: Boolean = false
