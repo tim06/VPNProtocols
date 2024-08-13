@@ -49,14 +49,12 @@ jobs:
             View: https://github.com/tim06/VPNProtocols/actions/runs/${{ github.run_id }}
           #document: ./sample/build/outputs/apk/debug/*.apk
 
-      # Decode Keystore
-      - name: Decode Keystore
+      # Base64 decodes and pipes the GPG key content into the secret file
+      - name: Prepare environment
         env:
-          ENCODED_STRING: ${{ secrets.GPG_SIGNING_KEY }}
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
           SIGNING_KEY_STORE_PATH: ${{ secrets.SIGNING_KEY_STORE_PATH }}
-        run: |
-          echo $ENCODED_STRING > keystore-b64.txt
-          base64 --decode keystore-b64.txt > $SIGNING_KEY_STORE_PATH
+        run: sudo bash -c "echo '$GPG_SIGNING_KEY' | base64 -d > '$SIGNING_KEY_STORE_PATH'"
       
       # Publish to Maven Central
       - name: Publish to Maven Central
