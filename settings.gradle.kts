@@ -10,6 +10,7 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        mavenLocal()
         google()
         mavenCentral()
 
@@ -27,8 +28,8 @@ include(
     ":protocols:openvpn",
     ":protocols:shadowsocksR",
     ":protocols:ikev2",
-    //":protocols:xrayNg",
-    ":protocols:xrayNeko",
+    ":protocols:xrayNg",
+    //":protocols:xrayNeko",
 )
 
 gradle.startParameter.excludedTaskNames.addAll(listOf(":build-logic:plugins:testClasses"))

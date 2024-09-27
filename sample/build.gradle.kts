@@ -85,15 +85,15 @@ android {
 
 dependencies {
     // xtls
-    implementation(files("libs/libcore.aar"))
-    //implementation(files("libs/libv2ray.aar"))
+    //implementation(files("libs/libcore.aar"))
+    implementation(files("libs/libv2ray.aar"))
 
     //Modules
     implementation(project(":protocols:openvpn"))
     implementation(project(":protocols:shadowsocksR"))
     implementation(project(":protocols:ikev2"))
-    //implementation(project(":protocols:xrayNg"))
-    implementation(project(":protocols:xrayNeko"))
+    implementation(project(":protocols:xrayNg"))
+    //implementation(project(":protocols:xrayNeko"))
 
     //AndroidX
     implementation(libs.androidx.core)
@@ -125,7 +125,8 @@ dependencies {
     //DataStore
     implementation(libs.androidx.datastore)
 
-    implementation(libs.xray.configuration.android)
+    //implementation(libs.xray.configuration.android)
+    implementation("io.github.tim06.xray-configuration:xray-configuration-android:1.0.4")
 
     //Test
     /*testImplementation(libs.test.junit)

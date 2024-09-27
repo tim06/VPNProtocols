@@ -44,7 +44,7 @@
         android:label="XTLSServiceFragment" />
     <fragment
         android:id="@+id/xrayNgFragment"
-        android:name="com.tim.vpnprotocols.view.xrayNg.XrayNgServiceFragment"
+        android:name="com.tim.vpnprotocols.view.xrayNg.XrayNgIntentFragment"
         android:label="XrayNgFragment" />
     <fragment
         android:id="@+id/xrayNekoIntentFragment"

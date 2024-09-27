@@ -178,6 +178,7 @@ class XRayNgService : ProtocolsVpnService() {
     }
 
     override fun unbindService(conn: ServiceConnection) {
+        logger?.d("unbindService()")
         stop()
         super.unbindService(conn)
     }
