@@ -36,9 +36,6 @@ import java.net.Inet6Address
 import java.util.Timer
 import java.util.TimerTask
 
-/**
- * @Author: Timur Hojatov
- */
 @Deprecated("Use com.tim.shadowsocksr.service.ShadowsocksRService")
 class ShadowsocksService : VpnService() {
 

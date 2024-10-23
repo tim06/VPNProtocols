@@ -21,13 +21,15 @@ dependencyResolutionManagement {
 
 rootProject.name = "VPNProtocols"
 include(
-    ":sample",
+    "samples:classic",
+    "samples:singBox",
     ":base:notification",
     ":base:basevpn",
     ":base:state",
     ":protocols:openvpn",
     ":protocols:shadowsocksR",
     ":protocols:ikev2",
+    ":protocols:singBox",
     ":protocols:xrayNg",
     //":protocols:xrayNeko",
 )

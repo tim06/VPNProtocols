@@ -10,7 +10,6 @@ import java.io.File
  * @param config current user configuration
  * for build *.conf
  *
- * @Author: Timur Hojatov
  */
 internal class ConfigWriter(
     private val config: ShadowsocksRVpnConfig

@@ -23,7 +23,6 @@ import kotlin.reflect.KProperty
  * @param clazz Class of VpnService
  * @param stateListener Receive state of connection
  *
- * @Author: Timur Hojatov
  */
 class VpnConnectionServiceDelegate(
     private val clazz: Class<out VpnService>,

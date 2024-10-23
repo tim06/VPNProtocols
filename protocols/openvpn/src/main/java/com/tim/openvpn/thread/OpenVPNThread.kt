@@ -9,7 +9,6 @@ import java.io.OutputStreamWriter
  *
  * @param config OpenVPN Profile config
  *
- * @Author: Timur Hojatov
  */
 internal class OpenVPNThread(
     private val config: OpenVPNConfig,

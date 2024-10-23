@@ -15,7 +15,6 @@ import java.io.InputStream
  *
  * @param context Application context
  *
- * @Author: Timur Hojatov
  */
 internal class NativeLibsHelper(
     private val context: Context

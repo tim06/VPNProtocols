@@ -18,7 +18,6 @@ import kotlin.coroutines.CoroutineContext
  * @param protectPath cache path for accept socket
  * @param protectFileDescriptor call [android.net.VpnService.protect]
  *
- * @Author: Timur Hojatov
  */
 internal class ShadowsocksRThread(
     private val protectPath: String,

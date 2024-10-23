@@ -1,7 +1,7 @@
 package com.tim.vpnprotocols.xrayNeko.fmt
 
 import com.tim.vpnprotocols.xrayNeko.util.Util
-import io.nekohasekai.sagernet.fmt.TypeMap
+import com.tim.libbox.sagernet.fmt.TypeMap
 
 fun parseUniversal(link: String): AbstractBean {
     return if (link.contains("?")) {

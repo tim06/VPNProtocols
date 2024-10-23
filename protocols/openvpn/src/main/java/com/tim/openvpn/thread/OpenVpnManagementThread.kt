@@ -16,7 +16,6 @@ import kotlin.properties.Delegates
 /**
  * OpenVPN management thread
  *
- * @Author: Timur Hojatov
  */
 internal class OpenVpnManagementThread(
     cacheDir: String,

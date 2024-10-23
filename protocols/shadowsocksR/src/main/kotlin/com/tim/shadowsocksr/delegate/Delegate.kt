@@ -14,7 +14,6 @@ import kotlin.properties.ReadOnlyProperty
  * @param config user configuration
  * @param stateListener listener for receive state update
  *
- * @Author: Timur Hojatov
  */
 fun shadowsocksR(
     stateListener: ((ConnectionState) -> Unit),

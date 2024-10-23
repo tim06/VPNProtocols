@@ -5,8 +5,6 @@ import kotlinx.parcelize.Parcelize
 
 /**
  * VPN connection states
- *
- * @Author: Timur Hojatov
  */
 @Parcelize
 enum class ConnectionState : Parcelable {

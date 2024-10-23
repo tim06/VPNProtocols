@@ -7,8 +7,6 @@ import kotlin.reflect.KProperty
 
 /**
  * Delegate for [RemoteCallbackList]
- *
- * @Author: Timur Hojatov
  */
 class StateDelegate : ReadOnlyProperty<Any, RemoteCallbackList<IConnectionStateListener>> {
 

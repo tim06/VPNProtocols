@@ -7,9 +7,6 @@ import android.util.Log
 import com.tim.basevpn.BuildConfig
 import com.tim.basevpn.IConnectionStateListener
 
-/**
- * @Author: Timur Hojatov
- */
 inline fun RemoteCallbackList<IConnectionStateListener>.sendCallback(
     crossinline block: (IConnectionStateListener) -> Unit
 ) {

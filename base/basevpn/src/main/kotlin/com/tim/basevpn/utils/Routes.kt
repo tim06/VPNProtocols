@@ -10,7 +10,6 @@ import com.tim.basevpn.R
  *
  * @param context for retrieve routes list
  *
- * @Author: Timur Hojatov
  */
 fun VpnService.Builder.addRoutes(context: Context) {
     context.resources.getStringArray(R.array.bypass_private_route)

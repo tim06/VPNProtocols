@@ -2,10 +2,6 @@ package com.tim.openvpn.model
 
 import java.util.*
 
-
-/**
- * @Author: Timur Hojatov
- */
 data class CIDRIP(
     var ip: String,
     var len: Int
