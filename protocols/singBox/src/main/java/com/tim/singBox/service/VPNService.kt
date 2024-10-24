@@ -31,6 +31,7 @@ import com.tim.singBox.ktx.toIpPrefix
 import com.tim.singBox.parser.parseConfiguration
 import go.Seq
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -75,22 +76,24 @@ class VPNService : ProtocolsVpnService(), PlatformInterfaceWrapper, CommandServe
     }
 
     override fun start() {
+        lifecycleScope.launch {
+            showNotification()
+        }
         try {
             lifecycleScope.launch(Dispatchers.IO) {
                 initialize()
+                delay(300)
+
                 try {
                     startCommandServer()
                 } catch (e: Exception) {
                     return@launch
                 }
 
-                withContext(Dispatchers.Main) {
-                    showNotification()
-                }
-
                 defaultNetworkMonitor?.start()
                 Libbox.registerLocalDNSTransport(requireNotNull(localResolver))
-                Libbox.setMemoryLimit(false)
+                //Libbox.setMemoryLimit(false)
+                delay(200)
 
                 val newService = try {
                     Libbox.newService(configuration, this@VPNService)
@@ -301,6 +304,7 @@ class VPNService : ProtocolsVpnService(), PlatformInterfaceWrapper, CommandServe
 
     override fun writeLog(message: String) {
         commandServer?.writeMessage(message)
+        println("CommandClient: appendLogs -> $message")
     }
 
     override fun getSystemProxyStatus(): SystemProxyStatus {

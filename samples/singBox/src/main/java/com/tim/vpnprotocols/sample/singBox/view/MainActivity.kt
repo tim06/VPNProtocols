@@ -6,10 +6,15 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.google.gson.JsonParser
 import com.tim.sample.singBox.R
 import com.tim.singBox.service.VPNService
 import com.tim.vpnprotocols.sample.singBox.VpnActivityResultContract
 import go.Seq
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
@@ -45,17 +50,42 @@ class MainActivity : AppCompatActivity() {
             }
         }
         findViewById<Button>(R.id.stopButton).setOnClickListener { stop() }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val folder = File(cacheDir.path + "/log")
+            if (!folder.exists()) {
+                folder.mkdirs()
+            }
+            val logFile = File("${folder.path}/box.log")
+            if (logFile.exists()) {
+                logFile.delete()
+            }
+        }
     }
 
     private fun start() {
-
+        val resultConfiguration = configuration.addLogs()
         VPNService.startService(
             context = this,
-            config = configuration,
+            config = resultConfiguration,
         )
     }
 
     private fun stop() {
         VPNService.stopService(this)
+    }
+
+    private fun String.addLogs(): String {
+        return runCatching {
+            val testPath = "${cacheDir.path}/log/box.log"
+            val source = JsonParser.parseString(this)
+            val sourceJsonObject = source.asJsonObject
+            val sourceLogJsonObject = sourceJsonObject.getAsJsonObject("log")
+            sourceLogJsonObject.addProperty("output", testPath)
+            sourceJsonObject.add("log", sourceLogJsonObject)
+            sourceJsonObject.toString()
+        }.onFailure {
+            println("JsonElementError: $it")
+        }.getOrDefault(this)
     }
 }
